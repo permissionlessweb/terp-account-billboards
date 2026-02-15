@@ -1,91 +1,60 @@
-# Stargaze Names: A Cosmos IBC Name Service
+# Terp Account Billboards: A Billboard For Your Wallet
 
-## API Docs
+This implementation is a compatible instance of [sg-names](https://github.com/public-awesome/names) for Terp Network. To the stargaze contributors, thank you for setting the tone with these!
+<!-- ##  [API Docs](./API.md) -->
 
-See [API Docs](./API.md)
+| Contract | Description |
+| --- | --- |
+| [Account Marketplace](./contracts/terp721-account-marketplace/README.md) | The secondary marketplace for accounts. Accounts are automatically listed here once they are minted. |
+| [Account Minter](./contracts/terp721-account-manifold/README.md) | Account minter is responsible for minting, validating, and updating accounts and their metadata. |
+| [Terp721-Account](./contracts/terp721-account/README.md) | A cw721 contract with on-chain metadata for an account. |
+| [Account Registry Middleware](./contracts/account-registry-middleware/README.md) | Recieves hooks and functions as admin middleware for abstract-account framework on-chain registry |
+<!-- 
+## Smart Accounts
 
-## Architecture
+| Contract | Description |
+| --- | --- |
+| [terp-ed25519](./contracts/smart-accounts/terp-ed25519/README.md) |   |
+| [terp-eth](./contracts/smart-accounts/terp-eth/README.md) |  |
+| [terp-irl](./contracts/smart-accounts/terp-irl/README.md) |   |
+| [terp-passkey](./contracts/smart-accounts/terp-passkey/README.md) |   |
+| [terp-wavs](./contracts/smart-accounts/terp-wavs/README.md) |   |
+| [terp-zktls](./contracts/smart-accounts/terp-zktls/README.md) |   | -->
 
-Names are stored without the TLD so they can be mapped to _any_ Cosmos address. All names can be resolved to an address that is derived via the same Cosmos key derivation path (118).
+## Scripting Library
 
-When you buy a Stargaze Name, you are really getting a name on _every_ Cosmos chain. Any chain can lookup a name by its local address over IBC. Similarly, any chain can mint a name over IBC that resolves to a local address.
+In this repo are [cw-orchestrator scripts](../../scripts/src/bin/manual_deploy.rs) that highlight this first step.
 
-```
-bobo -> D93385094E906D7DA4EBFDEC2C4B167D5CAA431A (in hex)
-```
+### Compile the contracts
 
-Now this can be resolved per chain:
-
-```
-bobo.stars  -> stars1myec2z2wjpkhmf8tlhkzcjck04w25sc6ymhplz
-bobo.cosmos -> cosmos1myec2z2wjpkhmf8tlhkzcjck04w25sc6y2xq2r
-```
-
-This architecture enables Stargaze Names to be a truly Interchain name service since it can mint and resolve names for any Cosmos chain.
-
-Chains that use different account types or key derivation paths can have support added later by migrating contracts. Name contracts are community-owned contracts that can be migrated by Stargaze governance.
-
-### Annual Auction
-
-- [x] When a name is minted it is automatically listed in Name Marketplace
-- [x] Owner can accept the top bid at any time
-- [ ] After 1 year, owner has to pay 0.5% of the top bid to keep the name
-- [ ] If a bid is placed for 4 weeks, name value rises to this value
-- [ ] If fee is not paid, name is transferred to the bidder
-- [ ] If there are no bids, there is a minimum fee to keep the name based on the number of characters
-- [ ] Cap annual fee at X per year
-
-## Initial Fees
-
-```
-5+ chars = 100 STARS
-4 chars  = 1,000 STARS
-3 chars  = 10,000 STARS
+```sh
+just optimize
 ```
 
-## Contracts
+### Test the workspace
 
-### [SG-721 Name](./contracts/sg721-name/README.md)
-
-A cw721 contract with on-chain metadata for a name.
-
-Types used in metadata:
-
-```rs
-pub struct TextRecord {
-    pub name: String,           // "twitter"
-    pub value: String,          // "shan3v"
-    pub verified: Option<bool>  // verified by oracle
-}
+```sh
+cargo test
+# for code coverage reports
+cargo coverage
 ```
 
-```rs
-pub struct Metadata {
-    pub image_nft: Option<NFT>,
-    pub record: Vec<TextRecord>,
-}
+### Cw-Orchestrator
+
+To run the integration tests:
+
+```sh
+cd scripts/ && cargo test
 ```
 
-Names are designed to be as flexible as possible, allowing generic `TextRecord` types to be added. Each record has a `verified` field that can only be modified by a verification oracle. For example, a Twitter verification oracle can verify a user's signature in a tweet, and set `verified` to `true`. Text records can also be used to link the name to other name services such as ENS.
+### Deploy
 
-`profile_nft` points to another NFT with on-chain metadata for profile information such as bio, header (banner) image, and follower information. This will be implemented as a separate collection.
+To learn more about the deployment scripts, [check here](./scripts/README).
 
-### [Name Minter](./contracts/name-minter/README.md)
+### Documentation
 
-Name minter is responsible for minting, validating, and updating names and their metadata.
-
-### [Name Marketplace](./contracts/marketplace/README.md)
-
-The secondary marketplace for names. Names are automatically listed here once they are minted.
-
-### [Whitelist](./contracts/whitelist-updatable/README.md)
-
-Whitelist allows for flexible updating to add / remove addresses at any point in minting. Also adds helper to account for whitelist minting limits.
-
-#### Coverage
-
-To run code coverage checks first install `tarpaulin` (`cargo install cargo-tarpaulin`), then run `make coverage` from the project root.
+Checkout some documentation [here](./docs/00_disclaimer).
 
 ## DISCLAIMER
 
-STARGAZE SOURCE CODE IS PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND. No developer or entity involved in creating or instantiating Stargaze smart contracts will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of Stargaze, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value. Although Public Awesome, LLC and it's affilliates developed the initial code for Stargaze, it does not own or control the Stargaze network, which is run by a decentralized validator set.
+TERP-NETWORK CODE IS PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND. No developer or entity involved in creating or instantiating Terp Network smart contracts will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of Terp Network, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value. Although Discover Decentralization DAO, and it's members configured existing code for the accounts, it does not own or control the Terp Network network.
