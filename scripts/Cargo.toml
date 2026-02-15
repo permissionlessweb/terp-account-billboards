@@ -1,8 +1,8 @@
 [package]
-name = "btsg-account-scripts"
+name = "terp-account-scripts"
 edition = "2021"
 license = "BSD-3-Clause"
-repository = "https://github.com/bitsongofficial/bs-accounts"
+repository = "https://github.com/terpofficial/terp-accounts"
 version  = { workspace = true }
 
 
@@ -12,7 +12,6 @@ sha2                        = { workspace = true }
 ripemd                      = { version = "0.1.3",  default-features = false }
 k256                        = { version = "0.13.3", default-features = false, features = ["ecdsa"] }
 ecdsa                       = { version = "0.16.2" }
-commonware-cryptography     = { version = "0.0.53" }
 
 # CosmWasm & Cosmos Ecosystem
 cosmwasm-schema             = { workspace = true }
@@ -22,14 +21,11 @@ cw-ownable                  = { workspace = true }
 cosmrs                      = { version = "0.22.0" }
 
 # NFT & Account Contracts
-bs721-base                  = { workspace = true }
-btsg-nft-scripts            = { workspace = true }
-account-registry-middleware = { workspace = true }
-btsg-account                = { path = "../packages/btsg-account" }
-btsg-auth                   = { workspace = true }
-bs721-account               = { workspace = true, features = ["library"] }
-bs721-account-minter        = { workspace = true, features = ["library"] }
-bs721-account-marketplace   = { workspace = true, features = ["library"] }
+cw721-base                  = { workspace = true }
+terp-account                = { path = "../packages/terp-account" }
+terp-auth                   = { workspace = true }
+terp721-account             = { workspace = true, features = ["library"] }
+terp721-account-manifold    = { workspace = true, features = ["library"] }
 
 # Abstract & CW-Orchestrator
 abstract-std                = { workspace = true }
@@ -50,6 +46,7 @@ log                         = { version = "0.4.22" }
 reqwest                     = { version = "0.11.9" }
 serde                       = { version = "1.0.140", default-features = false, features = ["derive"] }
 serde_json                  = { workspace = true }
+cw721                       = { workspace = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio                       = { version = "1.39.3" }
 

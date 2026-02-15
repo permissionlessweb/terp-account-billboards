@@ -9,25 +9,22 @@ resolver = "2"
 
 [workspace.package]
 version = "0.2.0"
-authors = [
-  "Hard-nett <hardnettt@proton.me>",
-]
+authors = ["Hard-nett <hardnettt@proton.me>"]
 edition = "2021"
-homepage   = "https://bitsong.io"
-repository = "https://github.com/bitsongofficial/bs-accounts"
-documentation = "https://docs.bitsong.io"
+homepage   = "https://terp.network"
+repository = "https://github.com/terpnetwork/terp-accounts"
+documentation = "https://docs.terp.network"
 license    = "Apache-2.0"
 
 [workspace.dependencies]
-bs721-account                = { path = "contracts/bs721-account" }
-bs721-account-minter         = { path = "contracts/bs721-account-minter" }
-bs721-account-marketplace    = { path = "contracts/bs721-account-marketplace" }
+terp721-account                = { path = "contracts/terp721-account" }
+terp721-account-manifold         = { path = "contracts/terp721-account-manifold" }
 ownership-verifier           = { path = "contracts/ownership-verifier" }
-account-registry-middleware  = { path = "contracts/account-registry-middleware" }
 
-cosmwasm-schema       = { version = "2.2.0" }
-cosmwasm-crypto       = { version = "2.2.2" }
-cosmwasm-std          = { version = "2.2.0", features = ["cosmwasm_1_4","cosmwasm_2_0"] }
+cosmwasm-schema       = { version = "2.3.2" }
+cosmwasm-crypto       = { version = "2.3.2" }
+cw-storage-macro      = { version = "2.1.0" }
+cosmwasm-std          = { version = "2.3.2", features = ["cosmwasm_1_4","cosmwasm_2_0"] }
 cw2                   = { version = "2.0.0" }
 cw-ownable            = { version = "2.1.0" }
 cw-storage-plus       = { version = "2.0.0" }
@@ -35,13 +32,11 @@ cw-utils              = { version = "2.0.0" }
 abstract-std          = { git = "https://github.com/permissionlessweb/abstract", branch = "feat/wasm-path" }
 # cw-orch             = { version = "0.28.0" }
 cw-orch               = { git = "https://github.com/permissionlessweb/cw-orchestrator", branch = "feat/wasm-path" }
-bs721                 = { git = "https://github.com/permissionlessweb/bs-nfts", branch = "feat/cw@v2", package = "bs721" }
-bs721-base            = { git = "https://github.com/permissionlessweb/bs-nfts", branch = "feat/cw@v2" }
-bs-controllers        = { git = "https://github.com/permissionlessweb/bs-nfts", branch = "feat/cw@v2", package = "bs-controllers" }
-btsg-nft-scripts      = { git = "https://github.com/permissionlessweb/bs-nfts", branch = "feat/cw@v2", package = "btsg-nft-scripts" }
-btsg-account          = { path = "packages/btsg-account" }
-btsg-auth             = { path = "packages/btsg-auth" }
-
+cw721  = {git = "https://github.com/hard-nett/cw-nfts", branch = "feat/cw721_016-feature-flag" }
+cw721-base            = "0.20.0"  
+terp-account          = { path = "packages/terp-account" }
+terp-auth             = { path = "packages/terp-auth" }
+cw-controllers        = "2.0.0"
 
 bech32 = { version = "0.11.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0.197", default-features = false, features = ["derive"] }
@@ -50,6 +45,9 @@ sha2 = { version = "0.10.8", default-features = false }
 thiserror = { version = "1.0.58" }
 schemars = "0.8.16"
 serde_json = "1.0.79"
+
+[patch.crates-io]
+cw721 = { git = "https://github.com/hard-nett/cw-nfts", branch = "feat/cw721_016-feature-flag" }
 
 [profile.release]
 opt-level = "z"

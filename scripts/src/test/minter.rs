@@ -1,11 +1,10 @@
-use btsg_account::market::{ConfigResponse, ManageHooksAction};
 use cw_orch::{anyhow, mock::MockBech32, prelude::*};
+use terp_account::manifold::Config;
 
-use crate::BtsgAccountSuite;
 use crate::{
-    Bs721AccountMarketExecuteMsgTypes, Bs721AccountsQueryMsgFns, BtsgAccountExecuteFns,
-    BtsgAccountMarketExecuteFns, BtsgAccountMarketQueryFns, BtsgAccountMinterExecuteFns,
-    BtsgAccountMinterQueryMsgFns, TestOwnershipExecuteMsgFns, TestOwnershipInitMsg,
+    Bs721AccountMarketExecuteMsgTypes, BtsgAccountExecuteFns, BtsgAccountMarketExecuteFns,
+    BtsgAccountMarketQueryFns, BtsgAccountSuite, Terp721AccountsQueryMsgFns,
+    TestOwnershipExecuteMsgFns, TestOwnershipInitMsg,
 };
 
 use cosmwasm_std::Uint128;
@@ -14,12 +13,10 @@ use cw_orch::mock::cw_multi_test::{SudoMsg, WasmSudo};
 
 use std::error::Error;
 
-use bs721_account_marketplace::state::MAX_FEE_BPS;
-use bs721_account_marketplace::ContractError as MarketContractError;
-use bs721_account_minter::ContractError as MinterContractError;
-use btsg_account::market::{Ask, Bid, ExecuteMsg, PendingBid};
-use btsg_account::DEPLOYMENT_DAO;
 use cosmwasm_std::{coin, Attribute, Binary, Event};
+use terp721_account_manifold::ContractError as MinterContractError;
+use terp_account::{manifold::ExecuteMsg, Ask, Bid, PendingBid};
+use terp_account::{DEPLOYMENT_DAO, TERP_PREFIX};
 
 const BID_AMOUNT: u128 = 1_000_000_000;
 #[test]
@@ -29,16 +26,12 @@ pub fn init() -> anyhow::Result<()> {
     // simulate deploying the test suite to the mock chain env.
     let suite = BtsgAccountSuite::deploy_on(mock.clone(), mock.sender)?;
 
-    suite
-        .market
-        .setup(suite.nft.address()?, suite.minter.address()?)
-        .unwrap_err();
-
     assert_eq!(
-        suite.market.config()?,
-        ConfigResponse {
-            minter: suite.minter.address()?,
-            collection: suite.nft.address()?
+        suite.manifold.config()?,
+        Config {
+            // minter: suite.manifold.address()?,
+            // collection: suite.nft.addrwqess()?,
+            public_mint_start_time: mock.app.borrow().block_info().time.plus_seconds(1)
         }
     );
 
@@ -60,16 +53,16 @@ pub fn init() -> anyhow::Result<()> {
 //         let hook_addr = mock.addr_make("salehook");
 
 //         suite
-//             .market
+//             .manifold
 //             .manage_hooks(ManageHooksAction::AddSaleHook(hook_addr.to_string()))?;
-//         let hooks = suite.market.sale_hooks()?;
+//         let hooks = suite.manifold.sale_hooks()?;
 //         assert_eq!(hooks.hooks.len(), 1);
 //         assert_eq!(hooks.hooks[0], hook_addr.to_string());
 
 //         suite
-//             .market
+//             .manifold
 //             .manage_hooks(ManageHooksAction::RemoveSaleHook(hook_addr.to_string()))?;
-//         let hooks = suite.market.sale_hooks()?;
+//         let hooks = suite.manifold.sale_hooks()?;
 //         assert_eq!(hooks.hooks.len(), 0);
 
 //         Ok(())
@@ -82,16 +75,16 @@ pub fn init() -> anyhow::Result<()> {
 //         let hook_addr = mock.addr_make("bidhook");
 
 //         suite
-//             .market
+//             .manifold
 //             .manage_hooks(ManageHooksAction::AddBidHook(hook_addr.to_string()))?;
-//         let hooks = suite.market.bid_hooks()?;
+//         let hooks = suite.manifold.bid_hooks()?;
 //         assert_eq!(hooks.hooks.len(), 1);
 //         assert_eq!(hooks.hooks[0], hook_addr.to_string());
 
 //         suite
-//             .market
+//             .manifold
 //             .manage_hooks(ManageHooksAction::RemoveBidHook(hook_addr.to_string()))?;
-//         let hooks = suite.market.bid_hooks()?;
+//         let hooks = suite.manifold.bid_hooks()?;
 //         assert_eq!(hooks.hooks.len(), 0);
 
 //         Ok(())
@@ -104,16 +97,16 @@ pub fn init() -> anyhow::Result<()> {
 //         let hook_addr = mock.addr_make("askhook");
 
 //         suite
-//             .market
+//             .manifold
 //             .manage_hooks(ManageHooksAction::AddAskHook(hook_addr.to_string()))?;
-//         let hooks = suite.market.ask_hooks()?;
+//         let hooks = suite.manifold.ask_hooks()?;
 //         assert_eq!(hooks.hooks.len(), 1);
 //         assert_eq!(hooks.hooks[0], hook_addr.to_string());
 
 //         suite
-//             .market
+//             .manifold
 //             .manage_hooks(ManageHooksAction::RemoveAskHook(hook_addr.to_string()))?;
-//         let hooks = suite.market.ask_hooks()?;
+//         let hooks = suite.manifold.ask_hooks()?;
 //         assert_eq!(hooks.hooks.len(), 0);
 
 //         Ok(())
@@ -130,13 +123,13 @@ pub fn init() -> anyhow::Result<()> {
 
 //         // // register hooks to middleware
 //         // suite
-//         //     .market
+//         //     .manifold
 //         //     .manage_hooks(ManageHooksAction::AddAskHook(mw_addr.clone()))?;
 //         // suite
-//         //     .market
+//         //     .manifold
 //         //     .manage_hooks(ManageHooksAction::AddBidHook(mw_addr.clone()))?;
 //         // suite
-//         //     .market
+//         //     .manifold
 //         //     .manage_hooks(ManageHooksAction::AddSaleHook(mw_addr.clone()))?;
 
 //         // // perform actions for hooks
@@ -153,7 +146,7 @@ pub fn init() -> anyhow::Result<()> {
 //         //         namespace: Some(account1.to_string()),
 //         //         install_modules: vec![], // TODO: install USB
 //         //         name: Some(account1.to_string()),
-//         //         description: Some("Powered By Bitsong Account Framework".into()),
+//         //         description: Some("Powered By Terp Account Framework".into()),
 //         //         link: None,
 //         //     },
 //         //     None,
@@ -197,6 +190,8 @@ pub fn init() -> anyhow::Result<()> {
 
 mod execute {
 
+    use terp721_account_manifold::state::MAX_FEE_BPS;
+
     use super::*;
 
     #[test]
@@ -233,16 +228,10 @@ mod execute {
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &owner)?;
 
-        // only minter sets asks
-        suite
-            .market
-            .set_ask(owner.clone(), token_id.to_string())
-            .unwrap_err();
-
         //  must set approval for
 
         // check if account is listed in marketplace
-        let res = suite.market.ask(token_id.to_string())?.unwrap();
+        let res = suite.manifold.ask(token_id.to_string())?.unwrap();
         assert_eq!(res.token_id, token_id);
 
         // check if token minted
@@ -279,22 +268,12 @@ mod execute {
         mock.wait_seconds(200)?;
 
         // ensure operator approval is set
-        let err = suite
-            .market
-            .call_as(&suite.minter.address()?)
-            .set_ask(owner.clone(), token_id.to_string())
-            .unwrap_err();
-        assert_eq!(
-            err.source().unwrap().to_string(),
-            MarketContractError::NotApproved {}.to_string()
-        );
-
         suite.mint_and_list(mock.clone(), token_id, &owner)?;
-        let balance = mock.query_balance(&bidder, "ubtsg")?;
+        let balance = mock.query_balance(&bidder, "uthiol")?;
         // assert overwritten bid returns funds from first bid
         suite.bid_w_funds(mock.clone(), token_id, bidder.clone(), BID_AMOUNT * 2)?;
         suite.bid_w_funds(mock.clone(), token_id, bidder.clone(), BID_AMOUNT)?;
-        let balance2 = mock.query_balance(&bidder, "ubtsg")?;
+        let balance2 = mock.query_balance(&bidder, "uthiol")?;
 
         assert_eq!(balance, Uint128::zero());
         assert_eq!(balance2.u128(), BID_AMOUNT * 2);
@@ -307,44 +286,44 @@ mod execute {
         // ask only removed by minter
         assert_eq!(
             suite
-                .market
+                .manifold
                 .remove_ask(token_id.to_string())
                 .unwrap_err()
                 .source()
                 .unwrap()
                 .to_string(),
-            MarketContractError::Unauthorized {}.to_string()
+            MinterContractError::Unauthorized {}.to_string()
         );
 
         assert_eq!(
             suite
-                .market
+                .manifold
                 .call_as(&suite.nft.address()?)
                 .remove_ask(token_id.to_string())
                 .unwrap_err()
                 .source()
                 .unwrap()
                 .to_string(),
-            MarketContractError::ExistingBids {}.to_string()
+            MinterContractError::ExistingBids {}.to_string()
         );
 
         // user (owner) starts off with 0 internet funny money
         assert_eq!(
-            mock.balance(&owner.clone(), Some("ubtsg".into()))?[0].amount,
+            mock.balance(&owner.clone(), Some("uthiol".into()))?[0].amount,
             Uint128::zero()
         );
 
         assert_eq!(
             suite
-                .market
+                .manifold
                 .update_ask(bidder.to_string(), token_id.to_string(),)
                 .unwrap_err()
                 .root()
                 .to_string(),
-            MarketContractError::Unauthorized {}.to_string(),
+            MinterContractError::Unauthorized {}.to_string(),
         );
         assert_eq!(
-            suite.market.bids(token_id.to_string(), None, None)?,
+            suite.manifold.bids(token_id.to_string(), None, None)?,
             vec![Bid {
                 token_id: token_id.to_string(),
                 bidder: bidder.clone(),
@@ -353,7 +332,7 @@ mod execute {
             }],
         );
         assert_eq!(
-            suite.market.bids_sorted_by_price(None, None)?,
+            suite.manifold.bids_sorted_by_price(None, None)?,
             vec![Bid {
                 token_id: token_id.to_string(),
                 bidder: bidder.clone(),
@@ -363,7 +342,7 @@ mod execute {
         );
 
         assert_eq!(
-            suite.market.reverse_bids_sorted_by_price(None, None)?,
+            suite.manifold.reverse_bids_sorted_by_price(None, None)?,
             vec![Bid {
                 token_id: token_id.to_string(),
                 bidder: bidder.clone(),
@@ -374,7 +353,7 @@ mod execute {
 
         assert_eq!(
             suite
-                .market
+                .manifold
                 .call_as(&bidder)
                 .accept_bid(bidder.clone(), token_id.into())
                 .unwrap_err()
@@ -383,28 +362,28 @@ mod execute {
                 .to_string(),
             "UnauthorizedOwner".to_string()
         );
-        suite.market.accept_bid(bidder.clone(), token_id.into())?;
+        suite.manifold.accept_bid(bidder.clone(), token_id.into())?;
 
         mock.wait_seconds(60)?;
         suite
-            .market
+            .manifold
             .call_as(&owner)
             .finalize_bid(token_id.to_string())?;
 
         // check if bid is removed
         assert!(suite
-            .market
+            .manifold
             .bid(bidder.to_string(), token_id.into())?
             .is_none());
         // verify that the bidder is the new owner
         assert_eq!(suite.owner_of(token_id.into())?, bidder.to_string());
         // check if user got the bid amount
         assert_eq!(
-            mock.balance(&owner, Some("ubtsg".into()))?[0].amount,
+            mock.balance(&owner, Some("uthiol".into()))?[0].amount,
             Uint128::from(BID_AMOUNT)
         );
         // confirm that a new ask was created
-        let res = suite.market.ask(token_id.to_string())?.unwrap();
+        let res = suite.manifold.ask(token_id.to_string())?.unwrap();
         assert_eq!(res.seller, bidder);
         assert_eq!(res.token_id, token_id);
 
@@ -421,44 +400,44 @@ mod execute {
         res.assert_event(&Event::new("wasm-remove-ask").add_attributes(vec![
             Attribute {
                 key: "_contract_address".to_string(),
-                value: suite.market.addr_str()?,
+                value: suite.manifold.addr_str()?,
             },
             Attribute::new("token_id", token_id.to_string()),
         ]));
 
-        assert_eq!(suite.market.ask(token_id.to_string())?, None);
+        assert_eq!(suite.manifold.ask(token_id.to_string())?, None);
 
         Ok(())
     }
     #[test]
 
     fn test_two_sales_cycles() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, None)?;
         let owner = mock.sender.clone();
         let bidder = mock.addr_make("bidder");
         let bidder2 = mock.addr_make("bidder2");
         let token_id = "bandura";
-        let market = suite.market.address()?;
+        let market = suite.manifold.address()?;
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &owner)?;
         suite.bid_w_funds(mock.clone(), token_id, bidder.clone(), BID_AMOUNT)?;
-        suite.market.accept_bid(bidder.clone(), token_id.into())?;
+        suite.manifold.accept_bid(bidder.clone(), token_id.into())?;
         mock.wait_seconds(60)?;
         suite
-            .market
+            .manifold
             .call_as(&owner)
             .finalize_bid(token_id.to_string())?;
         suite.bid_w_funds(mock.clone(), token_id, bidder2.clone(), BID_AMOUNT)?;
         suite.nft.call_as(&bidder).approve(market, token_id, None)?;
         suite
-            .market
+            .manifold
             .call_as(&bidder)
             .accept_bid(bidder2.clone(), token_id.into())?;
         mock.wait_seconds(60)?;
         suite
-            .market
+            .manifold
             .call_as(&bidder)
             .finalize_bid(token_id.to_string())?;
 
@@ -468,13 +447,13 @@ mod execute {
     fn test_reverse_map() -> anyhow::Result<()> {
         let token_id = "bandura";
 
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, None)?;
         mock.wait_seconds(200)?;
 
         let admin2 = mock.addr_make("admin2");
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         suite.mint_and_list(mock.clone(), token_id, &admin2)?;
@@ -516,15 +495,15 @@ mod execute {
 
     #[test]
     fn test_reverse_map_not_contract_address_admin() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, None)?;
 
-        let not_admin = mock.addr_make_with_balance("not-admin", coins(1000000000, "ubtsg"))?;
-        mock.add_balance(&not_admin, vec![coin(10000000000u128, "ubtsg")])?;
+        let not_admin = mock.addr_make_with_balance("not-admin", coins(1000000000, "uthiol"))?;
+        mock.add_balance(&not_admin, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), not_admin.clone(), 10000000000u128)?;
 
-        let minter = suite.minter.address()?;
+        let minter = suite.manifold.address()?;
         let token_id = "bandura";
         println!("not-admin: {:#?}", not_admin);
         mock.wait_seconds(200)?;
@@ -539,13 +518,13 @@ mod execute {
 
     #[test]
     fn test_reverse_map_not_owner() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, None)?;
         let token_id = "bandura";
         let admin2 = mock.addr_make("admin2");
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
@@ -559,21 +538,21 @@ mod execute {
     }
     #[test]
     fn test_pause() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
         let token_id = "bandura";
         let admin2 = mock.addr_make("admin2");
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &admin2)?;
 
         // pause minting
-        suite.minter.pause(true)?;
+        suite.manifold.pause(true)?;
 
         // error trying to mint
         mock.wait_seconds(200)?;
@@ -586,13 +565,13 @@ mod execute {
 
     #[test]
     fn test_update_mkt_sudo() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, None)?;
         let token_id = "bandura";
         let admin2 = mock.addr_make("admin2");
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
@@ -600,13 +579,17 @@ mod execute {
 
         // run sudo msg
         mock.app.borrow_mut().sudo(SudoMsg::Wasm(WasmSudo {
-            contract_addr: suite.market.address()?,
-            message: to_json_binary(&btsg_account::market::SudoMsg::UpdateParams {
+            contract_addr: suite.manifold.address()?,
+            message: to_json_binary(&terp_account::manifold::SudoMsg::UpdateParams {
                 trading_fee_bps: Some(1000u64),
                 min_price: Some(Uint128::from(1000u128)),
                 ask_interval: Some(1000),
                 cooldown_duration: Some(69),
                 cooldown_cancel_fee: Some(coin(69u128, "jerets")),
+                min_account_length: None,
+                max_account_length: None,
+                base_price: None,
+                base_delegation: None,
             })?,
         }))?;
 
@@ -614,23 +597,27 @@ mod execute {
             mock.app
                 .borrow_mut()
                 .sudo(SudoMsg::Wasm(WasmSudo {
-                    contract_addr: suite.market.address()?,
-                    message: to_json_binary(&btsg_account::market::SudoMsg::UpdateParams {
+                    contract_addr: suite.manifold.address()?,
+                    message: to_json_binary(&terp_account::manifold::SudoMsg::UpdateParams {
                         trading_fee_bps: Some(MAX_FEE_BPS * 2u64),
                         min_price: Some(Uint128::from(1000u128)),
                         ask_interval: Some(1000),
                         cooldown_duration: Some(69),
                         cooldown_cancel_fee: Some(coin(69u128, "jerets")),
+                        min_account_length: None,
+                        max_account_length: None,
+                        base_price: None,
+                        base_delegation: None,
                     })?,
                 }))
                 .unwrap_err()
                 .root_cause()
                 .to_string(),
-            MarketContractError::InvalidTradingFeeBps(MAX_FEE_BPS * 2u64).to_string()
+            MinterContractError::InvalidTradingFeeBps(MAX_FEE_BPS * 2u64).to_string()
         );
 
         // confirm updated params
-        let res = suite.market.params()?;
+        let res = suite.manifold.params()?;
         assert_eq!(res.trading_fee_percent, Decimal::percent(10));
         assert_eq!(res.min_price, Uint128::from(1000u128));
         assert_eq!(res.ask_interval, 1000);
@@ -639,49 +626,36 @@ mod execute {
 
         let new = mock.addr_make("new-jawn");
         let newnew = mock.addr_make("newer-jawn");
-        mock.app.borrow_mut().sudo(SudoMsg::Wasm(WasmSudo {
-            contract_addr: suite.market.address()?,
-            message: to_json_binary(&btsg_account::market::SudoMsg::UpdateAccountFactory {
-                factory: new.to_string(),
-            })?,
-        }))?;
-        assert_eq!(suite.market.config()?.minter, new);
-        mock.app.borrow_mut().sudo(SudoMsg::Wasm(WasmSudo {
-            contract_addr: suite.market.address()?,
-            message: to_json_binary(&btsg_account::market::SudoMsg::UpdateAccountCollection {
-                collection: newnew.to_string(),
-            })?,
-        }))?;
-        assert_eq!(suite.market.config()?.collection, newnew);
+
         Ok(())
     }
 
     #[test]
     fn test_cooldown_period_operator_approve() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         mock.wait_seconds(200)?;
         let owner = mock.sender.clone();
-        mock.add_balance(&owner, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&owner, vec![coin(10000000000u128, "uthiol")])?;
         let bidder = mock.addr_make("bidder");
         let account = "account";
         suite.mint_and_list(mock.clone(), account, &owner)?;
         suite.bid_w_funds(mock.clone(), account, bidder.clone(), BID_AMOUNT)?;
-        suite.market.accept_bid(bidder.clone(), account.into())?;
-        suite.nft.revoke_all(suite.market.address()?)?;
+        suite.manifold.accept_bid(bidder.clone(), account.into())?;
+        suite.nft.revoke_all(suite.manifold.address()?)?;
         mock.wait_seconds(60)?;
-        let res = suite.market.finalize_bid(account.to_string())?;
+        let res = suite.manifold.finalize_bid(account.to_string())?;
         res.assert_event(&Event::new("wasm").add_attributes(vec![
             Attribute {
                 key: "_contract_address".to_string(),
                 value: suite.nft.addr_str()?,
             },
             Attribute::new("action", "approve_all".to_string()),
-            Attribute::new("operator", suite.market.addr_str()?),
+            Attribute::new("operator", suite.manifold.addr_str()?),
         ]));
         assert_eq!(
-            suite.market.ask(account.to_string())?.unwrap().seller,
+            suite.manifold.ask(account.to_string())?.unwrap().seller,
             &bidder
         );
         Ok(())
@@ -689,28 +663,28 @@ mod execute {
 
     #[test]
     fn test_cooldown_period() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         mock.wait_seconds(200)?;
 
         let owner = mock.sender.clone();
-        mock.add_balance(&owner, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&owner, vec![coin(10000000000u128, "uthiol")])?;
         let bidder = mock.addr_make("bidder");
         let account = "account";
         suite.mint_and_list(mock.clone(), account, &owner)?;
         suite.bid_w_funds(mock.clone(), account, bidder.clone(), BID_AMOUNT)?;
-        let owner_balance_a = mock.query_balance(&owner, "ubtsg")?;
-        let bidder_balance_a = mock.query_balance(&bidder, "ubtsg")?;
-        suite.market.accept_bid(bidder.clone(), account.into())?;
+        let owner_balance_a = mock.query_balance(&owner, "uthiol")?;
+        let bidder_balance_a = mock.query_balance(&bidder, "uthiol")?;
+        suite.manifold.accept_bid(bidder.clone(), account.into())?;
         // no funds are transfered before cooldown is over
-        let owner_balance_b = mock.query_balance(&owner, "ubtsg")?;
-        let bidder_balance_b = mock.query_balance(&bidder, "ubtsg")?;
+        let owner_balance_b = mock.query_balance(&owner, "uthiol")?;
+        let bidder_balance_b = mock.query_balance(&bidder, "uthiol")?;
         mock.wait_seconds(10)?;
         assert_eq!(owner_balance_a, owner_balance_b);
         assert_eq!(bidder_balance_a, bidder_balance_b);
         assert_eq!(
-            suite.market.cooldown(account.to_string())?,
+            suite.manifold.cooldown(account.to_string())?,
             Some(PendingBid {
                 ask: Ask {
                     token_id: account.to_string(),
@@ -724,7 +698,7 @@ mod execute {
         );
         assert_eq!(
             suite.nft.burn(account).unwrap_err().root().to_string(),
-            bs721_account::ContractError::AccountCannotBeTransfered {
+            terp721_account::ContractError::AccountCannotBeTransfered {
                 reason: "Account is in cooldown".to_string()
             }
             .to_string()
@@ -736,7 +710,7 @@ mod execute {
                 .unwrap_err()
                 .root()
                 .to_string(),
-            bs721_account::ContractError::AccountCannotBeTransfered {
+            terp721_account::ContractError::AccountCannotBeTransfered {
                 reason: "Account is in cooldown".to_string()
             }
             .to_string()
@@ -744,11 +718,11 @@ mod execute {
         assert_eq!(
             suite
                 .nft
-                .send_nft(suite.minter.address()?, Binary::default(), account)
+                .send_nft(suite.manifold.address()?, Binary::default(), account)
                 .unwrap_err()
                 .root()
                 .to_string(),
-            bs721_account::ContractError::AccountCannotBeTransfered {
+            terp721_account::ContractError::AccountCannotBeTransfered {
                 reason: "Account is in cooldown".to_string()
             }
             .to_string()
@@ -757,75 +731,75 @@ mod execute {
         // cannot finalize until cooldown period is over
 
         assert!(mock.block_info()?.time.seconds().lt(&suite
-            .market
+            .manifold
             .cooldown(account.to_string())?
             .unwrap()
             .unlock_time
             .seconds()));
         assert_eq!(
             suite
-                .market
+                .manifold
                 .finalize_bid(account.to_string())
                 .unwrap_err()
                 .root()
                 .to_string(),
-            MarketContractError::InvalidDuration {}.to_string()
+            MinterContractError::InvalidDuration {}.to_string()
         );
 
         mock.wait_seconds(50)?;
         // cannot cancel after cooldown completes
         assert_eq!(
             suite
-                .market
+                .manifold
                 .execute(
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string(),
                     },
-                    &vec![coin(500_000_000, "ubtsg")],
+                    &vec![coin(500_000_000, "uthiol")],
                 )
                 .unwrap_err()
                 .root()
                 .to_string(),
-            MarketContractError::InvalidDuration {}.to_string()
+            MinterContractError::InvalidDuration {}.to_string()
         );
         // token id doesnt exists
         assert_eq!(
             suite
-                .market
+                .manifold
                 .execute(
                     &ExecuteMsg::CancelCooldown {
                         token_id: "babber".to_string(),
                     },
-                    &vec![coin(500_000_000, "ubtsg")],
+                    &vec![coin(500_000_000, "uthiol")],
                 )
                 .unwrap_err()
                 .root()
                 .to_string(),
-            MarketContractError::AskNotFound {}.to_string()
+            MinterContractError::AskNotFound {}.to_string()
         );
         // token id doesnt exists
         assert_eq!(
             suite
-                .market
+                .manifold
                 .execute(
                     &ExecuteMsg::FinalizeBid {
                         token_id: "babber".to_string(),
                     },
-                    &vec![coin(500_000_000, "ubtsg")],
+                    &vec![coin(500_000_000, "uthiol")],
                 )
                 .unwrap_err()
                 .root()
                 .to_string(),
-            MarketContractError::AskNotFound {}.to_string()
+            MinterContractError::AskNotFound {}.to_string()
         );
 
         suite
-            .market
+            .manifold
             .call_as(&owner)
             .finalize_bid(account.to_string())?;
-        assert_eq!(suite.market.cooldown(account.to_string())?, None,);
-        let owner_balance_c = mock.query_balance(&owner, "ubtsg")?;
-        let bidder_balance_c = mock.query_balance(&bidder, "ubtsg")?;
+        assert_eq!(suite.manifold.cooldown(account.to_string())?, None,);
+        let owner_balance_c = mock.query_balance(&owner, "uthiol")?;
+        let bidder_balance_c = mock.query_balance(&bidder, "uthiol")?;
         assert_eq!(owner_balance_c.u128(), owner_balance_b.u128() + BID_AMOUNT);
         assert_eq!(bidder_balance_b, bidder_balance_c);
         Ok(())
@@ -833,28 +807,28 @@ mod execute {
 
     #[test]
     fn test_cancel_cooldown_period() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         mock.wait_seconds(200)?;
         let owner = mock.sender.clone();
-        mock.add_balance(&owner, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&owner, vec![coin(10000000000u128, "uthiol")])?;
         let bidder = mock.addr_make("bidder");
         mock.add_balance(&owner, vec![coin(10000000000u128, "uthiol")])?;
         let account = "account";
         suite.mint_and_list(mock.clone(), account, &owner)?;
         suite.bid_w_funds(mock.clone(), account, bidder.clone(), BID_AMOUNT)?;
-        let owner_balance_a = mock.query_balance(&owner, "ubtsg")?;
-        let bidder_balance_a = mock.query_balance(&bidder, "ubtsg")?;
-        suite.market.accept_bid(bidder.clone(), account.into())?;
+        let owner_balance_a = mock.query_balance(&owner, "uthiol")?;
+        let bidder_balance_a = mock.query_balance(&bidder, "uthiol")?;
+        suite.manifold.accept_bid(bidder.clone(), account.into())?;
         // no funds are transfered before cooldown is over
-        let owner_balance_b = mock.query_balance(&owner, "ubtsg")?;
-        let bidder_balance_b = mock.query_balance(&bidder, "ubtsg")?;
+        let owner_balance_b = mock.query_balance(&owner, "uthiol")?;
+        let bidder_balance_b = mock.query_balance(&bidder, "uthiol")?;
         mock.wait_seconds(10)?;
         assert_eq!(owner_balance_a, owner_balance_b);
         assert_eq!(bidder_balance_a, bidder_balance_b);
         assert_eq!(
-            suite.market.cooldown(account.to_string())?,
+            suite.manifold.cooldown(account.to_string())?,
             Some(PendingBid {
                 ask: Ask {
                     token_id: account.to_string(),
@@ -869,7 +843,7 @@ mod execute {
         mock.wait_seconds(49)?;
         assert_eq!(
             suite
-                .market
+                .manifold
                 .call_as(&bidder)
                 .cancel_cooldown(account.to_string())
                 .unwrap_err()
@@ -879,7 +853,7 @@ mod execute {
         );
         assert_eq!(
             suite
-                .market
+                .manifold
                 .execute(
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string()
@@ -893,12 +867,12 @@ mod execute {
         );
         assert_eq!(
             suite
-                .market
+                .manifold
                 .execute(
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string()
                     },
-                    &vec![coin(499_000_000, "ubtsg")]
+                    &vec![coin(499_000_000, "uthiol")]
                 )
                 .unwrap_err()
                 .root()
@@ -911,7 +885,7 @@ mod execute {
         );
         assert_eq!(
             suite
-                .market
+                .manifold
                 .execute(
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string()
@@ -921,20 +895,20 @@ mod execute {
                 .unwrap_err()
                 .root()
                 .to_string(),
-            "Must send reserve token 'ubtsg'"
+            "Incorrect payment, got: 499000000, expected 500000000"
         );
-        suite.market.execute(
+        suite.manifold.execute(
             &ExecuteMsg::CancelCooldown {
                 token_id: account.to_string(),
             },
-            &vec![coin(500_000_000, "ubtsg")],
+            &vec![coin(500_000_000, "uthiol")],
         )?;
-        let dd_balance = mock.query_balance(&Addr::unchecked(DEPLOYMENT_DAO), "ubtsg")?;
-        let bidder_balance_c = mock.query_balance(&bidder, "ubtsg")?;
+        let dd_balance = mock.query_balance(&Addr::unchecked(DEPLOYMENT_DAO), "uthiol")?;
+        let bidder_balance_c = mock.query_balance(&bidder, "uthiol")?;
         assert_eq!(bidder_balance_c.u128(), BID_AMOUNT + 250_000_000u128);
         assert_eq!(dd_balance.u128(), 250_000_000u128);
         Ok(())
-        // assert_eq!(suite.market.cooldown(account.to_string())?, None,);
+        // assert_eq!(suite.manifold.cooldown(account.to_string())?, None,);
 
         // assert_eq!(owner_balance_b, bidder_balance_c);
         // assert_ne!(bidder_balance_b, owner_balance_c);
@@ -942,13 +916,13 @@ mod execute {
 
     #[test]
     fn test_mint_with_delegation_tiers() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
         mock.wait_seconds(200)?;
         let user = mock.addr_make("user");
-        mock.add_balance(&user, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user, vec![coin(10000000000u128, "uthiol")])?;
 
         let id_3 = "rep";
         let id_4 = "repe";
@@ -958,7 +932,7 @@ mod execute {
 
         // Test with account length 3
         let user3 = mock.addr_make("user3");
-        mock.add_balance(&user3, vec![coin(10500000000u128, "ubtsg")])?;
+        mock.add_balance(&user3, vec![coin(10500000000u128, "uthiol")])?;
         suite.delegate_to_val(
             mock.clone(),
             user3.clone(),
@@ -968,7 +942,7 @@ mod execute {
 
         // Test with account length 4
         let user4 = mock.addr_make("user4abcd");
-        mock.add_balance(&user4, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user4, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(
             mock.clone(),
             user4.clone(),
@@ -978,13 +952,13 @@ mod execute {
 
         // Test with account length 5 or more
         let user5 = mock.addr_make("user5abcde");
-        mock.add_balance(&user5, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user5, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), user5.clone(), base_delegation.u128())?;
         suite.mint_and_list(mock.clone(), id_5, &user5)?;
 
         // Test with insufficient delegation for account length 3
         let user3_insufficient = mock.addr_make("user3_insufficient");
-        mock.add_balance(&user3_insufficient, vec![coin(10000440u128, "ubtsg")])?;
+        mock.add_balance(&user3_insufficient, vec![coin(10000440u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), user3_insufficient.clone(), 10000440u128)?;
         assert_eq!(
             suite
@@ -1008,35 +982,35 @@ mod admin {
 
     #[test]
     fn test_update_admin() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin2 = mock.addr_make("admin2");
         // non-admin tries to set admin to None
         suite
-            .minter
+            .manifold
             .call_as(&admin2)
             .update_ownership(cw_ownable::Action::RenounceOwnership)
             .unwrap_err();
         // admin updates admin
         suite
-            .minter
+            .manifold
             .update_ownership(cw_ownable::Action::TransferOwnership {
                 new_owner: admin2.to_string(),
                 expiry: None,
             })?;
         // new admin updates to have no admin
         suite
-            .minter
+            .manifold
             .call_as(&admin2)
             .update_ownership(cw_ownable::Action::AcceptOwnership)?;
         suite
-            .minter
+            .manifold
             .call_as(&admin2)
             .update_ownership(cw_ownable::Action::RenounceOwnership)?;
         // cannot update without admin
         suite
-            .minter
+            .manifold
             .update_ownership(cw_ownable::Action::TransferOwnership {
                 new_owner: admin2.to_string(),
                 expiry: None,
@@ -1046,27 +1020,27 @@ mod admin {
     }
 }
 mod query {
-    use btsg_account::market::{Bid, BidOffset};
     use cosmwasm_std::{coin, Attribute, Event};
+    use terp_account::{manifold::BidOffset, Bid};
 
     use super::*;
 
     #[test]
     fn test_query_ask() -> anyhow::Result<()> {
         let token_id = "bandura";
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin2 = mock.addr_make("admin2");
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &admin2)?;
 
         assert_eq!(
-            suite.market.ask(token_id.into())?.unwrap().token_id,
+            suite.manifold.ask(token_id.into())?.unwrap().token_id,
             token_id
         );
         Ok(())
@@ -1074,27 +1048,27 @@ mod query {
     #[test]
     fn test_query_asks() -> anyhow::Result<()> {
         let token_id = "bandura";
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
         let admin2 = mock.addr_make("admin2");
 
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &admin)?;
         suite.mint_and_list(mock.clone(), "hack", &admin2)?;
 
-        assert_eq!(suite.market.asks(None, None)?[0].id, 1);
+        assert_eq!(suite.manifold.asks(None, None)?[0].id, 1);
 
         Ok(())
     }
     #[test]
     fn test_query_asks_by_seller() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
@@ -1102,7 +1076,7 @@ mod query {
         let token_id = "bandura";
 
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
@@ -1111,7 +1085,7 @@ mod query {
 
         assert_eq!(
             suite
-                .market
+                .manifold
                 .asks_by_seller(admin.to_string(), None, None)?
                 .len(),
             1
@@ -1120,7 +1094,7 @@ mod query {
     }
     #[test]
     fn test_query_ask_count() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
@@ -1128,19 +1102,19 @@ mod query {
         let token_id = "bandura";
 
         // delegate
-        mock.add_balance(&admin2, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&admin2, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), admin2.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &admin)?;
         suite.mint_and_list(mock.clone(), "hack", &admin2)?;
 
-        assert_eq!(suite.market.ask_count()?, 2);
+        assert_eq!(suite.manifold.ask_count()?, 2);
         Ok(())
     }
     #[test]
     fn test_query_top_bids() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
@@ -1154,7 +1128,7 @@ mod query {
         suite.bid_w_funds(mock.clone(), token_id, bidder1.clone(), BID_AMOUNT)?;
         suite.bid_w_funds(mock.clone(), token_id, bidder2.clone(), BID_AMOUNT * 5)?;
 
-        let res = suite.market.bids_for_seller(admin.clone(), None, None)?;
+        let res = suite.manifold.bids_for_seller(admin.clone(), None, None)?;
         assert_eq!(res.len(), 2);
         assert_eq!(res[1].amount.u128(), BID_AMOUNT);
 
@@ -1166,7 +1140,7 @@ mod query {
         };
         let res: Vec<Bid> =
             suite
-                .market
+                .manifold
                 .bids_for_seller(admin.clone(), None, Some(filter.clone()))?;
 
         // should be length 0 because there are no token_ids besides NAME.to_string()
@@ -1184,50 +1158,50 @@ mod query {
         suite.bid_w_funds(mock.clone(), account, bidder1.clone(), BID_AMOUNT * 3)?;
         suite.bid_w_funds(mock.clone(), account, bidder2, BID_AMOUNT * 2)?;
         let res = suite
-            .market
+            .manifold
             .bids_for_seller(admin.clone(), None, Some(filter.clone()))?;
         // should be length 2 because there is token_id "jump" with 2 bids
         assert_eq!(res.len(), 2);
 
         suite
-            .market
+            .manifold
             .call_as(&bidder1)
             .execute(
                 &Bs721AccountMarketExecuteMsgTypes::RemoveBid {
                     token_id: account.to_string(),
                 },
-                &[coin(1, "ubtsg")],
+                &[coin(1, "uthiol")],
             )
             .unwrap_err();
 
         let res = suite
-            .market
+            .manifold
             .call_as(&bidder1)
             .remove_bid(account.to_string())?;
 
         println!("res: {:#?}", res);
         res.assert_event(&Event::new("transfer").add_attributes(vec![
             Attribute::new("recipient", bidder1.to_string()),
-            Attribute::new("sender", suite.market.addr_str()?),
-            Attribute::new("amount", coin(BID_AMOUNT * 3, "ubtsg").to_string()),
+            Attribute::new("sender", suite.manifold.addr_str()?),
+            Attribute::new("amount", coin(BID_AMOUNT * 3, "uthiol").to_string()),
         ]));
         res.assert_event(&Event::new("wasm-remove-bid").add_attributes(vec![
             Attribute {
                 key: "_contract_address".to_string(),
-                value: suite.market.addr_str()?,
+                value: suite.manifold.addr_str()?,
             },
             Attribute::new("token_id", account.to_string()),
             Attribute::new("bidder", bidder1.to_string()),
         ]));
 
-        let res = suite.market.bids_for_seller(admin, None, Some(filter))?;
+        let res = suite.manifold.bids_for_seller(admin, None, Some(filter))?;
         assert_eq!(res.len(), 1);
 
         Ok(())
     }
     #[test]
     fn test_query_bids_by_seller() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
@@ -1241,12 +1215,12 @@ mod query {
         suite.bid_w_funds(mock.clone(), token_id, bidder1.clone(), BID_AMOUNT)?;
         suite.bid_w_funds(mock.clone(), token_id, bidder2.clone(), BID_AMOUNT * 5)?;
 
-        let res = suite.market.bids_for_seller(admin.clone(), None, None)?;
+        let res = suite.manifold.bids_for_seller(admin.clone(), None, None)?;
         assert_eq!(res.len(), 2);
         assert_eq!(res[1].amount.u128(), BID_AMOUNT);
 
         // test pagination
-        let res = suite.market.bids_for_seller(
+        let res = suite.manifold.bids_for_seller(
             admin.clone(),
             None,
             Some(BidOffset::new(
@@ -1265,7 +1239,7 @@ mod query {
         suite.bid_w_funds(mock.clone(), account, bidder1.clone(), BID_AMOUNT * 3)?;
         suite.bid_w_funds(mock.clone(), account, bidder2, BID_AMOUNT * 2)?;
         // should be length 2 because there is token_id "jump" with 2 bids
-        let res = suite.market.bids_for_seller(
+        let res = suite.manifold.bids_for_seller(
             admin.clone(),
             None,
             Some(BidOffset::new(
@@ -1280,7 +1254,7 @@ mod query {
     }
     #[test]
     fn test_query_highest_bid() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
@@ -1296,7 +1270,7 @@ mod query {
 
         assert_eq!(
             suite
-                .market
+                .manifold
                 .highest_bid(token_id.to_string())?
                 .unwrap()
                 .amount
@@ -1308,7 +1282,7 @@ mod query {
     }
     #[test]
     fn test_query_account() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let admin = mock.sender.clone();
@@ -1332,7 +1306,7 @@ mod query {
     }
     // #[test]
     // fn test_query_trading_start_time() -> anyhow::Result<()> {
-    //     let mock = MockBech32::new("bitsong");
+    //     let mock = MockBech32::new(TERP_PREFIX);
     //     let mut suite = BtsgAccountSuite::new(mock.clone());
     //     suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1340,13 +1314,13 @@ mod query {
     // }
 }
 mod collection {
-    use btsg_account::TextRecord;
     use cosmwasm_std::coin;
+    use terp_account::TextRecord;
 
     use super::*;
     #[test]
     fn test_verify_twitter() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1390,7 +1364,7 @@ mod collection {
     }
     #[test]
     fn test_verify_false() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1424,7 +1398,7 @@ mod collection {
     }
     #[test]
     fn test_verified_text_record() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1469,7 +1443,7 @@ mod collection {
     }
     #[test]
     fn test_transfer_nft() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1487,7 +1461,7 @@ mod collection {
     }
     #[test]
     fn test_send_nft() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1504,11 +1478,11 @@ mod collection {
     }
     #[test]
     fn test_transfer_nft_and_bid() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
         let bidder1 = mock.addr_make("bidder1");
-        let market = suite.market.address()?;
+        let market = suite.manifold.address()?;
 
         let user1 = mock.addr_make("user1");
         let admin_user = mock.sender.clone();
@@ -1525,7 +1499,7 @@ mod collection {
         suite.nft.call_as(&user1).approve(market, token_id, None)?;
         // accept bid
         suite
-            .market
+            .manifold
             .call_as(&user1)
             .accept_bid(bidder1, token_id.into())?;
 
@@ -1533,7 +1507,7 @@ mod collection {
     }
     #[test]
     fn test_transfer_nft_with_reverse_map() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1542,7 +1516,7 @@ mod collection {
         let token_id = "bandura";
 
         // delegate
-        mock.add_balance(&user, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), user.clone(), 10000000000u128)?;
 
         mock.wait_seconds(200)?;
@@ -1579,7 +1553,7 @@ mod collection {
     // }
     #[test]
     fn test_sudo_update() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1589,7 +1563,7 @@ mod collection {
         // run sudo msg
         mock.app.borrow_mut().sudo(SudoMsg::Wasm(WasmSudo {
             contract_addr: suite.nft.address()?,
-            message: to_json_binary(&bs721_account::msg::SudoMsg::UpdateParams {
+            message: to_json_binary(&terp721_account::msg::SudoMsg::UpdateParams {
                 max_record_count: max_record_count + 1,
                 max_rev_map_count: max_rev_key_count + 4,
             })?,
@@ -1606,14 +1580,14 @@ mod collection {
 }
 mod public_start_time {
 
-    use btsg_account::minter::Config;
     use cosmwasm_std::coin;
+    use terp_account::manifold::Config;
 
     use super::*;
 
     #[test]
     fn test_mint_before_start() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1622,7 +1596,7 @@ mod public_start_time {
         let user4 = mock.addr_make("user4");
 
         // delegate
-        mock.add_balance(&user4, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user4, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), user4.clone(), 10000000000u128)?;
 
         suite
@@ -1636,21 +1610,21 @@ mod public_start_time {
 
     #[test]
     fn test_update_start_time() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
-        let res = suite.minter.config()?;
+        let res = suite.manifold.config()?;
         assert_eq!(
             res.public_mint_start_time,
             mock.block_info()?.time.plus_seconds(200)
         );
 
-        suite.minter.update_config(Config {
+        suite.manifold.update_config(Config {
             public_mint_start_time: mock.block_info()?.time.plus_seconds(2),
         })?;
 
-        let res = suite.minter.config()?;
+        let res = suite.manifold.config()?;
         assert_eq!(
             res.public_mint_start_time,
             mock.block_info()?.time.plus_seconds(2)
@@ -1662,14 +1636,14 @@ mod public_start_time {
 
 mod associate_address {
 
-    use bs721_account::msg::InstantiateMsg;
     use cosmwasm_std::{coin, Attribute, Event};
+    use terp721_account::msg::{InstantiateMsg, Terp721InstantiateMsg};
 
     use super::*;
 
     #[test]
     fn test_abstract_account_workflow() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1708,16 +1682,16 @@ mod associate_address {
             .test_owner
             .update_ownership(abstract_std::objects::gov_type::GovernanceDetails::Renounced {})?;
 
-        let owner_bal = mock.query_balance(&admin_user, "ubtsg")?;
-        let bidder_bal = mock.query_balance(&bidder, "ubtsg")?;
+        let owner_bal = mock.query_balance(&admin_user, "uthiol")?;
+        let bidder_bal = mock.query_balance(&bidder, "uthiol")?;
         suite.bid_w_funds(mock.clone(), token_id, bidder.clone(), BID_AMOUNT)?;
         assert_eq!(bidder_bal, Uint128::zero());
-        let _res = suite.market.accept_bid(bidder.clone(), token_id.into())?;
+        let _res = suite.manifold.accept_bid(bidder.clone(), token_id.into())?;
         // assert funds go back to bidder, along with tokens if owner changes ownership prior to finalizing bid
         mock.wait_seconds(60)?;
-        let res = suite.market.finalize_bid(token_id.into())?;
-        let owner_bal2 = mock.query_balance(&admin_user, "ubtsg")?;
-        let bidder_bal2 = mock.query_balance(&bidder, "ubtsg")?;
+        let res = suite.manifold.finalize_bid(token_id.into())?;
+        let owner_bal2 = mock.query_balance(&admin_user, "uthiol")?;
+        let bidder_bal2 = mock.query_balance(&bidder, "uthiol")?;
         assert_eq!(BID_AMOUNT, bidder_bal2.u128());
         assert_eq!(owner_bal, owner_bal2);
         assert_eq!(
@@ -1726,8 +1700,8 @@ mod associate_address {
         );
         res.assert_event(&Event::new("transfer").add_attributes(vec![
             Attribute::new("recipient", bidder.to_string()),
-            Attribute::new("sender", suite.market.addr_str()?),
-            Attribute::new("amount", coin(BID_AMOUNT, "ubtsg").to_string()),
+            Attribute::new("sender", suite.manifold.addr_str()?),
+            Attribute::new("amount", coin(BID_AMOUNT, "uthiol").to_string()),
         ]));
 
         Ok(())
@@ -1735,7 +1709,7 @@ mod associate_address {
 
     #[test]
     fn test_transfer_to_eoa() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1749,12 +1723,13 @@ mod associate_address {
                 cw721_id,
                 &InstantiateMsg {
                     verifier: None,
-                    marketplace: suite.market.address()?,
-                    base_init_msg: bs721_base::InstantiateMsg {
+                    base_init_msg: Terp721InstantiateMsg {
                         name: "test2".into(),
                         symbol: "TEST2".into(),
-                        uri: None,
-                        minter: suite.minter.address()?.to_string(),
+                        collection_info_extension: None,
+                        minter: Some(suite.manifold.address()?.to_string()),
+                        creator: None,
+                        withdraw_address: None,
                     },
                 },
                 "test".into(),
@@ -1779,7 +1754,7 @@ mod associate_address {
         // For the purposes of this test, a collection contract with no admin needs to be instantiated (contract_with_no_admin)
         // This contract needs to have a creator that is itself a contract and this creator contract should have an admin (USER).
         // The admin (USER) of the creator contract will mint a account and associate the account with the collection contract that doesn't have an admin successfully.
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1794,12 +1769,13 @@ mod associate_address {
                 cw721_id,
                 &InstantiateMsg {
                     verifier: None,
-                    marketplace: suite.market.address()?,
-                    base_init_msg: bs721_base::InstantiateMsg {
+                    base_init_msg: Terp721InstantiateMsg {
                         name: "test2".into(),
                         symbol: "TEST2".into(),
-                        uri: None,
-                        minter: suite.minter.address()?.to_string(),
+                        collection_info_extension: None,
+                        minter: Some(suite.manifold.address()?.to_string()),
+                        creator: None,
+                        withdraw_address: None,
                     },
                 },
                 "test".into(),
@@ -1815,12 +1791,13 @@ mod associate_address {
                 cw721_id,
                 &InstantiateMsg {
                     verifier: None,
-                    marketplace: suite.market.address()?,
-                    base_init_msg: bs721_base::InstantiateMsg {
+                    base_init_msg: Terp721InstantiateMsg {
                         name: "test2".into(),
                         symbol: "TEST2".into(),
-                        uri: None,
-                        minter: suite.minter.address()?.to_string(),
+                        minter: Some(suite.manifold.address()?.to_string()),
+                        collection_info_extension: None,
+                        creator: None,
+                        withdraw_address: None,
                     },
                 },
                 "test".into(),
@@ -1847,7 +1824,7 @@ mod associate_address {
         // For the purposes of this test, a collection contract with no admin needs to be instantiated (contract_with_no_admin)
         // This contract needs to have a creator that is itself a contract and this creator contract should have an admin (USER).
         // An address other than the admin (USER) of the creator contract will mint a account, try to associate the account with the collection contract that doesn't have an admin and fail.
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1855,7 +1832,7 @@ mod associate_address {
         let user4 = mock.addr_make("user4");
 
         // delegate
-        mock.add_balance(&user4, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user4, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), user4.clone(), 10000000000u128)?;
 
         let cw721_id = suite.nft.code_id()?;
@@ -1867,12 +1844,14 @@ mod associate_address {
                 cw721_id,
                 &InstantiateMsg {
                     verifier: None,
-                    marketplace: suite.market.address()?,
-                    base_init_msg: bs721_base::InstantiateMsg {
+
+                    base_init_msg: Terp721InstantiateMsg {
                         name: "test2".into(),
                         symbol: "TEST2".into(),
-                        uri: None,
-                        minter: suite.minter.address()?.to_string(),
+                        minter: Some(suite.manifold.address()?.to_string()),
+                        collection_info_extension: None,
+                        creator: None,
+                        withdraw_address: None,
                     },
                 },
                 "test".into(),
@@ -1888,12 +1867,14 @@ mod associate_address {
                 cw721_id,
                 &InstantiateMsg {
                     verifier: None,
-                    marketplace: suite.market.address()?,
-                    base_init_msg: bs721_base::InstantiateMsg {
+                    base_init_msg: Terp721InstantiateMsg {
                         name: "test2".into(),
                         symbol: "TEST2".into(),
-                        uri: None,
-                        minter: suite.minter.address()?.to_string(),
+
+                        minter: Some(suite.manifold.address()?.to_string()),
+                        collection_info_extension: None,
+                        creator: None,
+                        withdraw_address: None,
                     },
                 },
                 "test".into(),
@@ -1915,13 +1896,13 @@ mod associate_address {
 
         assert_eq!(
             err.root().to_string(),
-            bs721_account::ContractError::UnauthorizedCreatorOrAdmin {}.to_string()
+            terp721_account::ContractError::UnauthorizedCreatorOrAdmin {}.to_string()
         );
         Ok(())
     }
     #[test]
     fn test_associate_with_a_contract_with_an_admin_fail() -> anyhow::Result<()> {
-        let mock = MockBech32::new("bitsong");
+        let mock = MockBech32::new(TERP_PREFIX);
         let mut suite = BtsgAccountSuite::new(mock.clone());
         suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
@@ -1929,7 +1910,7 @@ mod associate_address {
         let user4 = mock.addr_make("user4");
 
         // delegate
-        mock.add_balance(&user4, vec![coin(10000000000u128, "ubtsg")])?;
+        mock.add_balance(&user4, vec![coin(10000000000u128, "uthiol")])?;
         suite.delegate_to_val(mock.clone(), user4.clone(), 10000000000u128)?;
 
         let cw721_id = suite.nft.code_id()?;
@@ -1941,12 +1922,14 @@ mod associate_address {
                 cw721_id,
                 &InstantiateMsg {
                     verifier: None,
-                    marketplace: suite.market.address()?,
-                    base_init_msg: bs721_base::InstantiateMsg {
+                    base_init_msg: Terp721InstantiateMsg {
                         name: "test2".into(),
                         symbol: "TEST2".into(),
-                        uri: None,
-                        minter: suite.minter.address()?.to_string(),
+
+                        minter: Some(suite.manifold.address()?.to_string()),
+                        collection_info_extension: None,
+                        creator: None,
+                        withdraw_address: None,
                     },
                 },
                 "test".into(),
@@ -1966,7 +1949,7 @@ mod associate_address {
 
         assert_eq!(
             err.root().to_string(),
-            bs721_account::ContractError::UnauthorizedCreatorOrAdmin {}.to_string()
+            terp721_account::ContractError::UnauthorizedCreatorOrAdmin {}.to_string()
         );
         Ok(())
     }

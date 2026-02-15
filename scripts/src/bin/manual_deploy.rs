@@ -1,11 +1,11 @@
 #![cfg(not(test))]
-use btsg_account::DEPLOYMENT_DAO;
-use btsg_account_scripts::{
-    networks::{ping_grpc, BITSONG_MAINNET, BITSONG_TESTNET},
-    *,
-};
 use clap::Parser;
 use cw_orch::{daemon::DaemonBuilder, prelude::*};
+use terp_account::DEPLOYMENT_DAO;
+use terp_account_scripts::{
+    networks::{ping_grpc, terp_MAINNET, terp_TESTNET},
+    *,
+};
 use tokio::runtime::Runtime;
 
 #[derive(Parser, Debug)]
@@ -26,16 +26,16 @@ fn main() {
     env_logger::init();
     dotenv::dotenv().ok();
 
-    println!("Deploying Bitsong Accounts Framework...");
+    println!("Deploying Terp Accounts Framework...");
 
-    let bitsong_chain = match args.network.as_str() {
-        "main" => BITSONG_MAINNET.to_owned(),
-        "testnet" => BITSONG_TESTNET.to_owned(),
+    let terp_chain = match args.network.as_str() {
+        "main" => terp_MAINNET.to_owned(),
+        "testnet" => terp_TESTNET.to_owned(),
         // "local" => LOCAL_NETWORK1.to_owned(),
         _ => panic!("Invalid network"),
     };
 
-    if let Err(ref err) = manual_deploy(bitsong_chain.into(), args.method) {
+    if let Err(ref err) = manual_deploy(terp_chain.into(), args.method) {
         log::error!("{}", err);
         err.chain()
             .skip(1)

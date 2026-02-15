@@ -15,7 +15,7 @@ MSG=$(cat <<EOF
 EOF
 )
 
-bitsongd tx wasm instantiate $MINTER_CODE_ID "$MSG" --label "AccountMinter" \
+terpd tx wasm instantiate $MINTER_CODE_ID "$MSG" --label "AccountMinter" \
   --admin $ADMIN \
   --fees 500000ubtsg --gas auto --gas-adjustment 1.9 \
   --from $ADMIN -y -o json | jq .

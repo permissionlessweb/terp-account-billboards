@@ -3,13 +3,8 @@ pub mod market;
 pub mod minter;
 pub mod smart_accounts;
 
-use abstract_interface::AccountI;
-use abstract_std::{native_addrs, objects::gov_type::GovernanceDetails};
-use anyhow::anyhow;
-use bs721_account_minter::msg::InstantiateMsg as AccountMinterInitMsg;
-use btsg_account::market::MarketplaceInstantiateMsg as AccountMarketInitMsg;
 use cosmwasm_std::{
-    coin, coins, instantiate2_address, Binary, CanonicalAddr, Decimal, Instantiate2AddressError,
+    coin, coins, instantiate2_address, CanonicalAddr, Decimal, Instantiate2AddressError,
     StakingMsg, Uint128,
 };
 use cw_blob::interface::{CwBlob, DeterministicInstantiation};
@@ -18,19 +13,19 @@ use cw_orch::{
     mock::cw_multi_test::{AppResponse, Module, StakingInfo},
     prelude::*,
 };
+use terp_account::manifold::InstantiateMsg as AccountMinterInitMsg;
 
 const BASE_PRICE: u128 = 100_000_000;
 const BASE_DELEGATION: u128 = 2100000000;
 const VALIDATOR_1: &str = "val-1";
 use crate::{
-    AccountRegistryExecuteFns, AccountRegistryQueryFns, Bs721AccountsQueryMsgFns,
     BtsgAccountExecuteFns, BtsgAccountMarketExecuteFns, BtsgAccountMarketQueryFns,
+    Terp721AccountsQueryMsgFns,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::{
     networks::{GAS_TO_DEPLOY, SUPPORTED_CHAINS},
-    suite::CW_BLOB,
     BtsgAccountSuite,
 };
 
@@ -40,7 +35,7 @@ pub struct DeploymentStatus {
     pub success: bool,
 }
 
-/// MockBech32 implementation for the Bitsong Account Suite.
+/// MockBech32 implementation for the Terp Account Suite.
 impl BtsgAccountSuite<MockBech32> {
     /// Creates intitial suite for testing
     pub fn default_setup(
@@ -54,7 +49,7 @@ impl BtsgAccountSuite<MockBech32> {
         self.blob.upload()?;
 
         let admin2 = mock.addr_make("admin2");
-        mock.add_balance(&mock.sender, vec![coin(10500000000, "ubtsg")])?;
+        mock.add_balance(&mock.sender, vec![coin(10500000000, "uthiol")])?;
         let blob_code_id = self.blob.code_id()?;
         let sender_addr = mock.sender_addr();
         let admin = sender_addr.to_string();
@@ -67,31 +62,20 @@ impl BtsgAccountSuite<MockBech32> {
         // a. uploads all contracts
 
         // b. instantiates marketplace
-        self.market.instantiate(
-            &AccountMarketInitMsg {
-                trading_fee_bps: 0u64,
-                min_price: 100u128.into(),
-                ask_interval: 30u64,
-                valid_bid_query_limit: 100u32,
-                cooldown_timeframe: 60u64,
-                cooldown_cancel_fee: coin(500_000_000, "ubtsg"),
-                hooks_admin: None,
-            },
-            None,
-            &[],
-        )?;
-        // Account Minter
-        // On instantitate, bs721-account contract is created by minter contract.
-        // We grab this contract addr from response events, and set address in internal test suite state.
-        let bs721_account = self
-            .minter
-            .call_as(&creator.clone().unwrap_or_else(|| admin2.clone()))
+        let terp721_account = self
+            .manifold
             .instantiate(
                 &AccountMinterInitMsg {
+                    trading_fee_bps: 0u64,
+                    min_price: 100u128.into(),
+                    ask_interval: 30u64,
+                    valid_bid_query_limit: 100u32,
+                    cooldown_timeframe: 60u64,
+                    cooldown_cancel_fee: coin(500_000_000, "uthiol"),
+                    hooks_admin: None,
                     admin: Some(admin.clone()),
                     verifier: Some(mock.addr_make("verifier").to_string()),
                     collection_code_id: self.nft.code_id()?,
-                    marketplace_addr: self.market.addr_str()?,
                     min_account_length: 3u32,
                     max_account_length: 128u32,
                     base_price: BASE_PRICE.into(),
@@ -101,14 +85,13 @@ impl BtsgAccountSuite<MockBech32> {
                 None,
                 &[],
             )?
-            .event_attr_value("wasm", "bs721_account_address")?;
+            .event_attr_value("wasm", "terp721_account_address")?;
+        // Account Minter
+        // On instantitate, terp721-account contract is created by minter contract.
+        // We grab this contract addr from response events, and set address in internal test suite state.
 
         self.nft
-            .set_default_address(&Addr::unchecked(bs721_account));
-
-        // Provide marketplace with collection and minter contracts.
-        self.market
-            .setup(self.nft.address()?, self.minter.address()?)?;
+            .set_default_address(&Addr::unchecked(terp721_account));
 
         let block_info = mock.block_info()?;
 
@@ -117,7 +100,7 @@ impl BtsgAccountSuite<MockBech32> {
             router.staking.setup(
                 storage,
                 StakingInfo {
-                    bonded_denom: "ubtsg".into(),
+                    bonded_denom: "uthiol".into(),
                     unbonding_time: 69u64,
                     apr: Decimal::from_ratio(69u128, 100u128),
                 },
@@ -140,8 +123,8 @@ impl BtsgAccountSuite<MockBech32> {
         self.delegate_to_val(mock.clone(), mock.sender.clone(), 10500000000)?;
 
         // println!("TOKEN:   {:#?}", self.nft.addr_str()?);
-        // println!("MARKET:  {:#?}", self.market.addr_str()?);
-        // println!("MINTER:  {:#?}", self.minter.addr_str()?);
+        // println!("MARKET:  {:#?}", self.manifold.addr_str()?);
+        // println!("MINTER:  {:#?}", self.manifold.addr_str()?);
         // println!("SENDER:  {:#?}", mock.sender_addr().to_string());
         // println!("ADMIN2:  {:#?}", admin2.to_string());
         // println!("ADMIN:   {:#?}", admin);
@@ -152,7 +135,7 @@ impl BtsgAccountSuite<MockBech32> {
 
         // self.middleware.instantiate(
         //     &account_registry_middleware::InstantiateMsg {
-        //         market: self.market.addr_str()?,
+        //         market: self.manifold.addr_str()?,
         //         collection: self.nft.addr_str()?,
         //         account_code_id: self.account.code_id()?,
         //     },
@@ -222,7 +205,7 @@ impl BtsgAccountSuite<MockBech32> {
         //         namespace: None,
         //         install_modules: vec![], // TODO: install USB
         //         name: Some("deployment-dao".into()),
-        //         description: Some("Powered By Bitsong Account Framework".into()),
+        //         description: Some("Powered By Terp Account Framework".into()),
         //         link: None,
         //     },
         //     None,
@@ -251,7 +234,7 @@ impl BtsgAccountSuite<MockBech32> {
                 delegator,
                 StakingMsg::Delegate {
                     validator: VALIDATOR_1.into(),
-                    amount: coin(amount, "ubtsg"),
+                    amount: coin(amount, "uthiol"),
                 },
             )
         })?;
@@ -267,7 +250,7 @@ impl BtsgAccountSuite<MockBech32> {
     ) -> anyhow::Result<AppResponse> {
         // set approval for user, for all tokens
         // approve_all is needed because we don't know the token_id before-hand
-        let market = self.market.address()?;
+        let market = self.manifold.address()?;
         self.nft.call_as(user).approve_all(market, None)?;
 
         let amount: Uint128 = (match account.to_string().as_str().len() {
@@ -277,14 +260,14 @@ impl BtsgAccountSuite<MockBech32> {
             _ => BASE_PRICE,
         })
         .into();
-        let name_fee = coins(amount.u128(), "ubtsg");
+        let name_fee = coins(amount.u128(), "uthiol");
         // give user some funds
         if Uint128::from(BASE_PRICE) > Uint128::from(0u128) {
             mock.add_balance(&user.clone(), name_fee.clone())?;
         };
         // call as user to mint and list the account name, with account fees
-        let res = self.minter.call_as(user).execute(
-            &bs721_account_minter::msg::ExecuteMsg::MintAndList {
+        let res = self.manifold.call_as(user).execute(
+            &terp_account::manifold::ExecuteMsg::MintAndList {
                 account: account.to_string(),
             },
             &name_fee,
@@ -305,11 +288,11 @@ impl BtsgAccountSuite<MockBech32> {
         amount: u128,
     ) -> anyhow::Result<()> {
         // give bidder some funds
-        let bid_amnt = coins(amount, "ubtsg");
+        let bid_amnt = coins(amount, "uthiol");
         mock.add_balance(&bidder, bid_amnt.clone())?;
 
-        self.market.call_as(&bidder).execute(
-            &btsg_account::market::ExecuteMsg::SetBid {
+        self.manifold.call_as(&bidder).execute(
+            &terp_account::manifold::ExecuteMsg::SetBid {
                 token_id: account.into(),
             },
             &bid_amnt,
@@ -317,7 +300,7 @@ impl BtsgAccountSuite<MockBech32> {
 
         // query if bid exists
         let res = self
-            .market
+            .manifold
             .bid(bidder.to_string(), account.into())?
             .unwrap();
         assert_eq!(res.token_id, account.to_string());

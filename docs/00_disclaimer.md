@@ -2,11 +2,11 @@
 
 ## Thoughts On Account Token Security Design
 
-Since account tokens are the key for smart accounts, it is essential to keep in mind the security vulnurabilities that exists in a multi contract system that involved the smart contract of your Bitsong Account Token. Below will list a few obvious examples, but as always security is never static.
+Since account tokens are the key for smart accounts, it is essential to keep in mind the security vulnurabilities that exists in a multi contract system that involved the smart contract of your Terp Account Token. Below will list a few obvious examples, but as always security is never static.
 
 ### Centralized Smart Contract Ownership & Migration Attack
 
-If the code-id of the accounts used has a global contract admin, then the possible risk of the admins integrity being compromised, and an attack may occur on wallets. Bitsong mitigates this risk by having the governance module set as the admin able to migrate a contract for all of the contracts used in the accounts framework.
+If the code-id of the accounts used has a global contract admin, then the possible risk of the admins integrity being compromised, and an attack may occur on wallets. Terp mitigates this risk by having the governance module set as the admin able to migrate a contract for all of the contracts used in the accounts framework.
 
 There is still a risk of any wallet address compromized that is also authorized to execute actions as the module, however there are none.
 

@@ -1,25 +1,25 @@
-# Bitsong Accounts: A Tokenized Account Framework
+# Terp Account Billboards: A Billboard For Your Wallet
 
-This implementation is a compatible instance of [sg-names](https://github.com/public-awesome/names) for Bitsong. To the stargaze contributors, thank you for setting the tone with these!
+This implementation is a compatible instance of [sg-names](https://github.com/public-awesome/names) for Terp Network. To the stargaze contributors, thank you for setting the tone with these!
 <!-- ##  [API Docs](./API.md) -->
 
 | Contract | Description |
 | --- | --- |
-| [Account Marketplace](./contracts/bs721-account-marketplace/README.md) | The secondary marketplace for accounts. Accounts are automatically listed here once they are minted. |
-| [Account Minter](./contracts/bs721-account-minter/README.md) | Account minter is responsible for minting, validating, and updating accounts and their metadata. |
-| [Bs721-Account](./contracts/bs721-account/README.md) | A cw721 contract with on-chain metadata for an account. |
+| [Account Marketplace](./contracts/terp721-account-marketplace/README.md) | The secondary marketplace for accounts. Accounts are automatically listed here once they are minted. |
+| [Account Minter](./contracts/terp721-account-manifold/README.md) | Account minter is responsible for minting, validating, and updating accounts and their metadata. |
+| [Terp721-Account](./contracts/terp721-account/README.md) | A cw721 contract with on-chain metadata for an account. |
 | [Account Registry Middleware](./contracts/account-registry-middleware/README.md) | Recieves hooks and functions as admin middleware for abstract-account framework on-chain registry |
 <!-- 
 ## Smart Accounts
 
 | Contract | Description |
 | --- | --- |
-| [btsg-ed25519](./contracts/smart-accounts/btsg-ed25519/README.md) |   |
-| [btsg-eth](./contracts/smart-accounts/btsg-eth/README.md) |  |
-| [btsg-irl](./contracts/smart-accounts/btsg-irl/README.md) |   |
-| [btsg-passkey](./contracts/smart-accounts/btsg-passkey/README.md) |   |
-| [btsg-wavs](./contracts/smart-accounts/btsg-wavs/README.md) |   |
-| [btsg-zktls](./contracts/smart-accounts/btsg-zktls/README.md) |   | -->
+| [terp-ed25519](./contracts/smart-accounts/terp-ed25519/README.md) |   |
+| [terp-eth](./contracts/smart-accounts/terp-eth/README.md) |  |
+| [terp-irl](./contracts/smart-accounts/terp-irl/README.md) |   |
+| [terp-passkey](./contracts/smart-accounts/terp-passkey/README.md) |   |
+| [terp-wavs](./contracts/smart-accounts/terp-wavs/README.md) |   |
+| [terp-zktls](./contracts/smart-accounts/terp-zktls/README.md) |   | -->
 
 ## Scripting Library
 
@@ -57,4 +57,4 @@ Checkout some documentation [here](./docs/00_disclaimer).
 
 ## DISCLAIMER
 
-BITSONG CODE IS PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND. No developer or entity involved in creating or instantiating Bitsong smart contracts will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of Bitsong, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value. Although Discover Decentralization DAO, and it's members configured existing code for the accounts, it does not own or control the Bitsong network.
+TERP-NETWORK CODE IS PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND. No developer or entity involved in creating or instantiating Terp Network smart contracts will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of Terp Network, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value. Although Discover Decentralization DAO, and it's members configured existing code for the accounts, it does not own or control the Terp Network network.

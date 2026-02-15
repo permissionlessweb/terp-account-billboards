@@ -1,25 +1,14 @@
-# macOS
 .DS_Store
-
-# Text file backups
 **/*.rs.bk
-
-# Build results
 target/
-
-# IDEs
 .vscode/
 .idea/
 *.iml
-
 contracts/*/schema*
 contracts/smart-accounts/*/schema*
-
-# Auto-gen
 .cargo-ok
-
-# code coverage
 tarpaulin-report.*
-
+vendor
+schema/*
 *.env
 **/node_modules/

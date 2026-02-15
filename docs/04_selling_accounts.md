@@ -9,7 +9,7 @@ accepting a bid. This puts the account token in an escrow stage, where after the
 
 ### Cancelling Cooldown Period
 
-In the scenario an account owner who has accepted a bid wants to cancel the purchase, they may do so by calling the `CancelCooldown` entrypoint. They are required to included a cooldown cancel fee, which is split between the bidder and the bitsong development team.
+In the scenario an account owner who has accepted a bid wants to cancel the purchase, they may do so by calling the `CancelCooldown` entrypoint. They are required to included a cooldown cancel fee, which is split between the bidder and the terp development team.
 
 ### Bid Refunds
 

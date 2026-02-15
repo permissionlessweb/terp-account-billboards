@@ -13,7 +13,7 @@ mkdir -p "$SCHEMA_OUTPUT_DIR"
 # Helper: move the first *.json found in $pwd/schema/ to $dest
 # ------------------------------------------------------------------
 move_schema() {
-    dest=$1               # e.g. ./schema/bs721-account.json
+    dest=$1               # e.g. ./schema/terp721-account.json
     # Find the first JSON file (if any) – stop after the first match
     json_file=$(find schema -maxdepth 1 -type f -name '*.json' -print -quit)
 
@@ -29,12 +29,11 @@ move_schema() {
 # ------------------------------------------------------------------
 # 1️⃣ Specific contracts listed explicitly
 # ------------------------------------------------------------------
-for contract in bs721-account bs721-account-marketplace bs721-account-minter account-registry-middleware; do
+for contract in terp721-account terp721-account-manifold; do
     echo "=== contracts/$contract ==="
     (
-        cd "contracts/$contract" || exit 1
-        cargo schema
-        move_schema "../../$SCHEMA_OUTPUT_DIR/$contract.json"
+        cargo schema -p $contract
+        move_schema "contracts/$contract/schema/$contract.json"
     )
 done
 

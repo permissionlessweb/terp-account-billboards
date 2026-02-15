@@ -1,16 +1,16 @@
 use crate::BtsgAccountExecuteFns;
-use ::bs721_account::{commands::transcode, ContractError};
-use bs721_account::msg::Bs721AccountsQueryMsgFns;
-use bs721_account::state::REVERSE_MAP_KEY;
-use btsg_account::verify_generic::{
-    preamble_msg_arb_036, pubkey_to_address, CosmosArbitrary, TestCosmosArb,
-};
-use btsg_account::{Metadata, TextRecord, NFT};
+use ::terp721_account::{commands::transcode, ContractError};
 use cosmwasm_std::testing::mock_dependencies;
 use cosmwasm_std::{from_json, Api, Binary, StdError};
 use cw_orch::prelude::CallAs;
 use cw_orch::{anyhow, mock::MockBech32, prelude::*};
 use std::error::Error;
+use terp721_account::msg::Terp721AccountsQueryMsgFns;
+use terp721_account::state::REVERSE_MAP_KEY;
+use terp_account::verify_generic::{
+    preamble_msg_arb_036, pubkey_to_address, CosmosArbitrary, TestCosmosArb,
+};
+use terp_account::{Metadata, TextRecord, NFT, TERP_PREFIX};
 
 use crate::BtsgAccountSuite;
 use ecdsa::signature::rand_core::OsRng;
@@ -35,7 +35,7 @@ fn mint_and_update() -> anyhow::Result<()> {
     suite.default_setup(mock.clone(), None, None)?;
 
     let not_minter = mock.addr_make("not-minter");
-    let minter = suite.minter.address()?;
+    let minter = suite.manifold.address()?;
 
     // retrieve max record count
     let params = suite.nft.params()?;
@@ -48,11 +48,9 @@ fn mint_and_update() -> anyhow::Result<()> {
         .nft
         .call_as(&not_minter)
         .mint(
-            btsg_account::Metadata::default(),
+            terp_account::Metadata::default(),
             not_minter.clone(),
             token_id,
-            None,
-            None,
             None,
         )
         .unwrap_err();
@@ -63,11 +61,9 @@ fn mint_and_update() -> anyhow::Result<()> {
     );
 
     suite.nft.call_as(&minter).mint(
-        btsg_account::Metadata::default(),
+        terp_account::Metadata::default(),
         mock.sender,
         token_id,
-        None,
-        None,
         None,
     )?;
 
@@ -75,10 +71,10 @@ fn mint_and_update() -> anyhow::Result<()> {
     let res = suite.nft.nft_info(token_id)?;
 
     assert_eq!(res.token_uri, None);
-    assert_eq!(res.extension, btsg_account::Metadata::default());
+    assert_eq!(res.extension, terp_account::Metadata::default());
 
     // update image
-    let new_nft = btsg_account::NFT {
+    let new_nft = terp_account::NFT {
         collection: Addr::unchecked("contract"),
         token_id: "token_id".to_string(),
     };
@@ -87,11 +83,11 @@ fn mint_and_update() -> anyhow::Result<()> {
         .update_image_nft(token_id, Some(new_nft.clone()))?
         .event_attr_value("wasm-update_image_nft", "image_nft")?
         .into_bytes();
-    let nft: btsg_account::NFT = from_json(nft_value).unwrap();
+    let nft: terp_account::NFT = from_json(nft_value).unwrap();
     assert_eq!(nft, new_nft);
 
     // add text record
-    let new_record = btsg_account::TextRecord {
+    let new_record = terp_account::TextRecord {
         account: "test".to_string(),
         value: "test".to_string(),
         verified: None,
@@ -102,7 +98,7 @@ fn mint_and_update() -> anyhow::Result<()> {
         .event_attr_value("wasm-update-text-record", "record")?
         .into_bytes();
 
-    let record: btsg_account::TextRecord = from_json(record_value)?;
+    let record: terp_account::TextRecord = from_json(record_value)?;
     assert_eq!(record, new_record);
     let records = suite.nft.text_records(token_id)?;
     assert_eq!(records.len(), 1);
@@ -113,7 +109,7 @@ fn mint_and_update() -> anyhow::Result<()> {
 
     // trigger too many records error
     for i in 1..=(max_record_count) {
-        let new_record = btsg_account::TextRecord {
+        let new_record = terp_account::TextRecord {
             account: format!("key{:?}", i),
             value: "value".to_string(),
             verified: None,
@@ -152,7 +148,7 @@ fn mint_and_update() -> anyhow::Result<()> {
         .unwrap_err();
     assert_eq!(
         err.root().to_string(),
-        ContractError::Base(bs721_base::ContractError::Ownership(
+        ContractError::Cw721(cw721::error::Cw721ContractError::Ownership(
             cw_ownable::OwnershipError::NotOwner
         ))
         .to_string()
@@ -162,7 +158,7 @@ fn mint_and_update() -> anyhow::Result<()> {
     assert_eq!(suite.nft.nft_info(token_id)?.extension.records.len(), 1);
 
     // add another txt record
-    let record = btsg_account::TextRecord {
+    let record = terp_account::TextRecord {
         account: "twitter".to_string(),
         value: "jackdorsey".to_string(),
         verified: None,
@@ -171,7 +167,7 @@ fn mint_and_update() -> anyhow::Result<()> {
     assert_eq!(suite.nft.nft_info(token_id)?.extension.records.len(), 2);
 
     // add duplicate record RecordAccountAlreadyExists
-    let record = btsg_account::TextRecord {
+    let record = terp_account::TextRecord {
         account: "test".to_string(),
         value: "testtesttest".to_string(),
         verified: None,
@@ -200,7 +196,7 @@ fn mint_and_update() -> anyhow::Result<()> {
 
 #[test]
 fn test_query_accounts() -> anyhow::Result<()> {
-    let mock = MockBech32::new("bitsong");
+    let mock = MockBech32::new(TERP_PREFIX);
     let mut suite = BtsgAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
 
@@ -223,7 +219,7 @@ fn test_query_accounts() -> anyhow::Result<()> {
 
 #[test]
 fn test_burn_function() -> anyhow::Result<()> {
-    let mock = MockBech32::new("bitsong");
+    let mock = MockBech32::new(TERP_PREFIX);
     let mut suite = BtsgAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
     let addr = mock.addr_make("babber23");
@@ -235,7 +231,10 @@ fn test_burn_function() -> anyhow::Result<()> {
 
     // cannot burn token you dont own
     let err = suite.nft.call_as(&addr).burn(token_id).unwrap_err();
-    assert_eq!(err.root().to_string(), "Unauthorized".to_string());
+    assert_eq!(
+        err.root().to_string(),
+        "Caller is not the contract's current owner".to_string()
+    );
 
     // token acutally gets burnt
     suite.nft.burn(token_id)?;
@@ -249,15 +248,15 @@ fn test_burn_function() -> anyhow::Result<()> {
 
 #[test]
 fn test_reverse_map_key_limit() -> anyhow::Result<()> {
-    let mock = MockBech32::new("bitsong");
+    let mock = MockBech32::new(TERP_PREFIX);
     let hrp = "cosmos";
     let mut suite = BtsgAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
-    let minter = suite.minter.address()?;
+    let minter = suite.manifold.address()?;
     let notminter = mock.addr_make("not-minter");
     let sender = mock.sender.clone();
 
-    // create non 'bitsong1...' addrs
+    // create non 'terp1...' addrs
     let mut carbs = vec![];
     for _ in 0..20 {
         // creeate new key
@@ -304,11 +303,9 @@ fn test_reverse_map_key_limit() -> anyhow::Result<()> {
     // mint tokens for mock.sender.clone()
     let token_id = "Enterprise";
     suite.nft.call_as(&minter).mint(
-        btsg_account::Metadata::default(),
+        terp_account::Metadata::default(),
         mock.sender.clone(),
         token_id,
-        None,
-        None,
         None,
     )?;
 
@@ -372,11 +369,11 @@ fn test_reverse_map_key_limit() -> anyhow::Result<()> {
 
     // confirm we have maps set
     for _ in 0..10 {
-        // query the bitsong address for a given external address
+        // query the terp address for a given external address
         let res = suite
             .nft
             .reverse_map_address(
-                btsg_account::verify_generic::pubkey_to_address(
+                terp_account::verify_generic::pubkey_to_address(
                     &fifth_carb.carb.pubkey,
                     fifth_carb.carb.hrp.as_ref().expect("hrp must be set"),
                 )?
@@ -439,17 +436,17 @@ fn test_transcode() -> anyhow::Result<()> {
     let mut deps = mock_dependencies();
 
     let cosmos1 = deps.api.addr_make("cosmos");
-    let bitsong1 = deps.api.addr_make("bitsong");
+    let terp1 = deps.api.addr_make("terp");
     let res = transcode(
         deps.as_ref(),
         "cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
     );
     assert_eq!(
         res.unwrap_err().to_string(),
-       "Generic error: no mappping set. Set a non `bitsong1...` addr mapped to your`bitsong1..` that owns this account token with UpdateMyReverseMapKey"    );
+       "Generic error: no mappping set. Set a non `terp1...` addr mapped to your`terp1..` that owns this account token with UpdateMyReverseMapKey"    );
 
     //
-    let canon = deps.api.addr_canonicalize(bitsong1.as_ref()).unwrap();
+    let canon = deps.api.addr_canonicalize(terp1.as_ref()).unwrap();
 
     // save to store
     REVERSE_MAP_KEY
@@ -461,7 +458,7 @@ fn test_transcode() -> anyhow::Result<()> {
         .unwrap();
 
     let res = transcode(deps.as_ref(), cosmos1.as_ref()).unwrap();
-    assert_eq!(bitsong1.to_string(), res);
+    assert_eq!(terp1.to_string(), res);
     Ok(())
 }
 
@@ -511,14 +508,14 @@ fn test_metadata() {
         }),
         records: vec![TextRecord {
             account: "website".to_string(),
-            value: "bitsong.io".to_string(),
+            value: "terp.io".to_string(),
             verified: None,
         }],
     };
 
     // Test 4: into_json_string produces valid JSON
     let json_str = custom_metadata.into_json_string().unwrap();
-    let expected_json = r#"{"account_ownership":true,"image_nft":{"token_id":"1","collection":"contract123"},"records":[{"account":"website","value":"bitsong.io","verified": null}]}"#;
+    let expected_json = r#"{"account_ownership":true,"image_nft":{"token_id":"1","collection":"contract123"},"records":[{"account":"website","value":"terp.io","verified": null}]}"#;
 
     // Parse both to ensure structural equality (avoid whitespace issues)
     let parsed_output: serde_json::Value = serde_json::from_str(&json_str).unwrap();

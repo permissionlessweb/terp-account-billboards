@@ -2,18 +2,21 @@
 
 fmt:
 	cargo fmt --all --check
-schema:
-	sh scripts/sh/schema-and-codegen.sh
 
 lint:
 	cargo clippy --fix --tests -- -D warnings
    
+test:
+    cargo test
+
 optimize:
 	sh scripts/sh/optimize.sh
-	
- 
-test:
-    cargo test --locked
+
+schema:
+	sh scripts/sh/schema-and-codegen.sh
+
+codegen:
+	cd scripts/ts/ && npm run codegen
 
 # publish:
 #     #!/usr/bin/env bash

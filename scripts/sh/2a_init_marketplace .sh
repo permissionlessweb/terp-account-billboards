@@ -1,10 +1,10 @@
-bitsongd config node $NODE
-bitsongd config chain-id $CHAIN_ID
-bitsongd config output json
+terpd config node $NODE
+terpd config chain-id $CHAIN_ID
+terpd config output json
 
 USER=terp1n5x097nd7v8dv8ng4x4xeux5xdv6jas6ekwwkn
 MKT_CODE_ID=167
-KEY=$(bitsongd keys show $USER | jq -r .name)
+KEY=$(terpd keys show $USER | jq -r .name)
 
 
 
@@ -19,7 +19,7 @@ EOF
 )
  
   echo 'Using single signer'
-  bitsongd tx wasm instantiate $MKT_CODE_ID "$MSG" --label "NameMarketplace" \
+  terpd tx wasm instantiate $MKT_CODE_ID "$MSG" --label "NameMarketplace" \
     --admin terp1n5x097nd7v8dv8ng4x4xeux5xdv6jas6ekwwkn \
     --gas auto --gas-adjustment 1.9  --fees 20000ubtsg \
     --from ica -y -o json | jq .

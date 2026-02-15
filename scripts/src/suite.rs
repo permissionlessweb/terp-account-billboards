@@ -1,21 +1,21 @@
 use crate::BtsgAccountMarketExecuteFns;
 use abstract_interface::{AbstractIbc, AccountI, AnsHost, ModuleFactory, Registry};
 use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
-use account_registry_middleware::interface::AccountRegistryMiddleware;
-use account_registry_middleware::ExecuteMsgFns;
 use anyhow::anyhow;
-use bs721_account::interface::BtsgAccountCollection;
-use bs721_account_marketplace::interface::BtsgAccountMarket;
-use bs721_account_minter::interface::BtsgAccountMinter;
-use btsg_account::{
-    Metadata, CURRENT_BASE_DELEGATION, CURRENT_BASE_PRICE, CURRENT_COOLDOWN_FEE,
-    CURRENT_MINIMUM_BID_PRICE,
-};
 use cosmwasm_std::{
     coin, instantiate2_address, Binary, CanonicalAddr, Instantiate2AddressError, Uint128,
 };
 use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 use ownership_verifier::interface::TestingOwnershipVerifier;
+use terp721_account::interface::BtsgAccountCollection;
+use terp721_account::ACCOUNT_CONTRACT;
+use terp721_account_manifold::contract::ACCOUNT_MANIFOLD_CONTRACT;
+use terp721_account_manifold::interface::BtsgAccountMinter;
+
+use terp_account::{
+    Metadata, CURRENT_BASE_DELEGATION, CURRENT_BASE_PRICE, CURRENT_COOLDOWN_FEE,
+    CURRENT_MINIMUM_BID_PRICE,
+};
 
 use cw_orch::prelude::*;
 pub struct BtsgAccountSuite<Chain>
@@ -26,11 +26,10 @@ where
     pub registry: Registry<Chain>,
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
-    // btsg-account
+    // terp-account
     pub nft: BtsgAccountCollection<Chain, Metadata>,
-    pub middleware: AccountRegistryMiddleware<Chain>,
-    pub minter: BtsgAccountMinter<Chain>,
-    pub market: BtsgAccountMarket<Chain>,
+    pub manifold: BtsgAccountMinter<Chain>,
+
     pub(crate) test_owner: TestingOwnershipVerifier<Chain>,
     pub(crate) account: AccountI<Chain>,
     pub(crate) blob: CwBlob<Chain>,
@@ -42,10 +41,8 @@ pub const CW_BLOB: &str = "cw:blob";
 impl<Chain: CwEnv> BtsgAccountSuite<Chain> {
     pub fn new(chain: Chain) -> BtsgAccountSuite<Chain> {
         BtsgAccountSuite::<Chain> {
-            middleware: AccountRegistryMiddleware::new("registry_middleware", chain.clone()),
-            nft: BtsgAccountCollection::new("bs721_account", chain.clone()),
-            minter: BtsgAccountMinter::new("bs721_account_minter", chain.clone()),
-            market: BtsgAccountMarket::new("bs721_account_marketplace", chain.clone()),
+            nft: BtsgAccountCollection::new(ACCOUNT_CONTRACT, chain.clone()),
+            manifold: BtsgAccountMinter::new(ACCOUNT_MANIFOLD_CONTRACT, chain.clone()),
             test_owner: TestingOwnershipVerifier::new("ownership_verifier", chain.clone()),
             ans_host: AnsHost::new(ANS_HOST, chain.clone()),
             registry: Registry::new(REGISTRY, chain.clone()),
@@ -58,30 +55,14 @@ impl<Chain: CwEnv> BtsgAccountSuite<Chain> {
 
     pub fn upload(&self) -> Result<(), CwOrchError> {
         let acc_code_id = self.nft.upload()?.uploaded_code_id()?;
-        let minter_code_id = self.minter.upload()?.uploaded_code_id()?;
-        let market_code_id = self.market.upload()?.uploaded_code_id()?;
-
-        // let middleware_code_id = self.middleware.upload()?.uploaded_code_id()?;
-        // self.blob.upload_if_needed()?;
-        // self.ans_host.upload()?;
-        // self.registry.upload()?;
-        // self.module_factory.upload()?;
-        // self.account.upload()?;
-        // self.account.upload()?;
-        // self.ibc
-        //     .upload()
-        //     .map_err(|e| CwOrchError::AnyError(anyhow!(e.to_string())))?;
-        // println!("Middleware code ID: {}", middleware_code_id);
-
+        let minter_code_id = self.manifold.upload()?.uploaded_code_id()?;
         println!("{}: {}", self.nft.id(), acc_code_id);
-        println!("{}: {}", self.minter.id(), minter_code_id);
-        println!("{}: {}", self.market.id(), market_code_id);
-
+        println!("{}: {}", self.manifold.id(), minter_code_id);
         Ok(())
     }
 }
 
-// Bitsong Accounts `Deploy` Suite
+// Terp Accounts `Deploy` Suite
 impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for BtsgAccountSuite<Chain> {
     // We don't have a custom error type
     type Error = CwOrchError;
@@ -94,16 +75,11 @@ impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for BtsgAccountSuite<Chain> 
     }
 
     fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Chain>>> {
-        vec![
-            Box::new(&mut self.nft),
-            Box::new(&mut self.minter),
-            Box::new(&mut self.market),
-        ]
+        vec![Box::new(&mut self.nft), Box::new(&mut self.manifold)]
     }
 
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
         let suite = Self::new(chain.clone());
-
         Ok(suite)
     }
 
@@ -112,56 +88,42 @@ impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for BtsgAccountSuite<Chain> 
         let mut suite: BtsgAccountSuite<Chain> = BtsgAccountSuite::store_on(chain.clone())?;
 
         // // // // // // // // // // // // // // // // // //
-        //  BTSG ACCOUNT TOKENS
+        //  THIOL ACCOUNT TOKENS
         // // // // // // // // // // // // // // // // // //
-        suite.market.instantiate(
-            &btsg_account::market::MarketplaceInstantiateMsg {
+        let terp721_account = suite.manifold.instantiate(
+            &terp_account::manifold::InstantiateMsg {
                 trading_fee_bps: 200,
                 min_price: Uint128::from(CURRENT_MINIMUM_BID_PRICE),
                 ask_interval: 60,
                 valid_bid_query_limit: 30,
                 cooldown_timeframe: 60 * 60 * 24 * 14 as u64, // 14 days
-                cooldown_cancel_fee: coin(CURRENT_COOLDOWN_FEE.into(), "ubtsg"),
+                cooldown_cancel_fee: coin(CURRENT_COOLDOWN_FEE.into(), "uthiol"),
                 hooks_admin: None,
+                admin: Some(data.to_string()),
+                verifier: None,
+                collection_code_id: suite.nft.code_id()?,
+                min_account_length: 3u32,
+                max_account_length: 128u32,
+                base_price: CURRENT_BASE_PRICE.into(),
+                base_delegation: CURRENT_BASE_DELEGATION.into(),
+                mint_start_delay: None,
             },
             Some(&Addr::unchecked(data.to_string())),
             &[],
         )?;
+        // .event_attr_value("wasm", "terp721_account_address")?;
 
-        let bs721_account = suite
-            .minter
-            .instantiate(
-                &bs721_account_minter::msg::InstantiateMsg {
-                    admin: Some(data.to_string()),
-                    verifier: None,
-                    collection_code_id: suite.nft.code_id()?,
-                    min_account_length: 3u32,
-                    max_account_length: 128u32,
-                    base_price: CURRENT_BASE_PRICE.into(),
-                    base_delegation: CURRENT_BASE_DELEGATION.into(),
-                    marketplace_addr: suite.market.addr_str()?,
-                    mint_start_delay: None,
-                },
-                Some(&Addr::unchecked(data.clone())),
-                &[],
-            )?
-            .event_attr_value("wasm", "bs721_account_address")?;
-
-        println!("minter contract: {}", suite.minter.addr_str()?);
-        println!("collection contract: {}", bs721_account);
-        let account = &Addr::unchecked(bs721_account);
-        suite.nft.set_default_address(&account);
-        suite.nft.set_address(&account);
-
-        // Provide marketplace with collection and minter contracts.
-        suite
-            .market
-            .setup(suite.nft.address()?, suite.minter.address()?)?;
+        println!("terp721_account: {:#?}", terp721_account);
+        println!("minter contract: {}", suite.manifold.addr_str()?);
+        // println!("collection contract: {}", terp721_account);
+        // let account = &Addr::unchecked(terp721_account);
+        // suite.nft.set_default_address(&account);
+        // suite.nft.set_address(&account);
 
         // suite.middleware.instantiate(
         //     &account_registry_middleware::InstantiateMsg {
-        //         market: suite.market.addr_str()?,
-        //         collection: suite.minter.addr_str()?,
+        //         market: suite.manifold.addr_str()?,
+        //         collection: suite.manifold.addr_str()?,
         //         account_code_id: suite.account.code_id()?,
         //     },
         //     Some(&Addr::unchecked(data.clone())),

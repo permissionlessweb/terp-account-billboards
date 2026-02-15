@@ -2,7 +2,7 @@ use cw_orch::{interface, prelude::*};
 
 use crate::{execute, instantiate, query, ExecuteMsg, InstantiateMsg, QueryMsg, CONTRACT_NAME};
 
-/// Uploadable trait for bs721_account_minter & use with cw-orchestrator library
+/// Uploadable trait for terp721_account_manifold & use with cw-orchestrator library
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
 pub struct TestingOwnershipVerifier;
 
