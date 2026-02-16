@@ -1,4 +1,4 @@
-use crate::BtsgAccountExecuteFns;
+use crate::TerpAccountExecuteFns;
 use ::terp721_account::{commands::transcode, ContractError};
 use cosmwasm_std::testing::mock_dependencies;
 use cosmwasm_std::{from_json, Api, Binary, StdError};
@@ -12,7 +12,7 @@ use terp_account::verify_generic::{
 };
 use terp_account::{Metadata, TextRecord, NFT, TERP_PREFIX};
 
-use crate::BtsgAccountSuite;
+use crate::TerpAccountSuite;
 use ecdsa::signature::rand_core::OsRng;
 use k256::ecdsa::{Signature, SigningKey, VerifyingKey};
 // use serde::Deserialize;
@@ -25,13 +25,13 @@ fn init() -> anyhow::Result<()> {
     // new mock Bech32 chain environment
     let mock = MockBech32::new("mock");
     // simulate deploying the test suite to the mock chain env.
-    BtsgAccountSuite::deploy_on(mock.clone(), mock.sender)?;
+    TerpAccountSuite::deploy_on(mock.clone(), mock.sender)?;
     Ok(())
 }
 #[test]
 fn mint_and_update() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let mut suite = BtsgAccountSuite::new(mock.clone());
+    let mut suite = TerpAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
 
     let not_minter = mock.addr_make("not-minter");
@@ -197,7 +197,7 @@ fn mint_and_update() -> anyhow::Result<()> {
 #[test]
 fn test_query_accounts() -> anyhow::Result<()> {
     let mock = MockBech32::new(TERP_PREFIX);
-    let mut suite = BtsgAccountSuite::new(mock.clone());
+    let mut suite = TerpAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
 
     let addr = mock.addr_make("babber");
@@ -220,7 +220,7 @@ fn test_query_accounts() -> anyhow::Result<()> {
 #[test]
 fn test_burn_function() -> anyhow::Result<()> {
     let mock = MockBech32::new(TERP_PREFIX);
-    let mut suite = BtsgAccountSuite::new(mock.clone());
+    let mut suite = TerpAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
     let addr = mock.addr_make("babber23");
     let token_id = "enterprise";
@@ -250,7 +250,7 @@ fn test_burn_function() -> anyhow::Result<()> {
 fn test_reverse_map_key_limit() -> anyhow::Result<()> {
     let mock = MockBech32::new(TERP_PREFIX);
     let hrp = "cosmos";
-    let mut suite = BtsgAccountSuite::new(mock.clone());
+    let mut suite = TerpAccountSuite::new(mock.clone());
     suite.default_setup(mock.clone(), None, None)?;
     let minter = suite.manifold.address()?;
     let notminter = mock.addr_make("not-minter");
@@ -262,9 +262,9 @@ fn test_reverse_map_key_limit() -> anyhow::Result<()> {
         // creeate new key
         let secret_key: ecdsa::SigningKey<k256::Secp256k1> = SigningKey::random(&mut OsRng); // Serialize with `::to_bytes()`
         let public_key: ecdsa::VerifyingKey<k256::Secp256k1> = VerifyingKey::from(&secret_key); // Serialize with `::to_encoded_point()`
-        let base64btsgaddr = &Binary::new(sender.as_bytes().to_vec()).to_base64();
+        let base64terpaddr = &Binary::new(sender.as_bytes().to_vec()).to_base64();
         let hraddr = pubkey_to_address(public_key.to_encoded_point(false).as_bytes(), "cosmos")?;
-        let adr036msgtohash = preamble_msg_arb_036(&hraddr.to_string(), base64btsgaddr);
+        let adr036msgtohash = preamble_msg_arb_036(&hraddr.to_string(), base64terpaddr);
         let msg_digest = Sha256::new().chain(&adr036msgtohash);
         let msg_hash = msg_digest.clone().finalize();
 
@@ -292,7 +292,7 @@ fn test_reverse_map_key_limit() -> anyhow::Result<()> {
         });
         println!("hraddr: {:#?}", hraddr);
         println!("sender: {:#?}", sender);
-        println!("base64btsgaddr: {:#?}", base64btsgaddr);
+        println!("base64terpaddr: {:#?}", base64terpaddr);
         println!("adr036msgtohash: {:#?}", adr036msgtohash.to_string());
         println!("msg_hash:  {:#?}", Binary::new(msg_hash.to_vec()));
         println!("signature:  {:#?}", Binary::new(signature.to_vec()));

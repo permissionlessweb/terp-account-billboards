@@ -1,4 +1,4 @@
-#  Btsg Auth
+#  Terp Auth
 
 Library to build custom authentication contracts for Terp's Smart Account module https://github.com/terpofficial/go-terp/blob/main/x/smart-account/README.md
 

@@ -69,7 +69,7 @@ pub enum SudoMsg {
 
 #[cw_ownable_execute]
 #[cw_serde]
-#[derive(cw_orch::ExecuteFns)]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Mint a account and list on Terp Account Marketplace
     MintAndList {
@@ -131,7 +131,8 @@ pub enum ExecuteMsg {
 }
 
 #[cw_serde]
-#[derive(QueryResponses, cw_orch::QueryFns)]
+#[derive(QueryResponses)]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     #[returns(::cw_ownable::Ownership::<::cosmwasm_std::Addr>)]
     Ownership {},

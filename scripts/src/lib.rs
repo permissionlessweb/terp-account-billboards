@@ -1,25 +1,25 @@
 pub mod suite;
-pub use suite::BtsgAccountSuite;
+pub use suite::TerpAccountSuite;
 pub mod networks;
 
 // re-export contract cw-orch functions & entrypoint types
 pub use terp721_account::msg::{
     AsyncTerp721AccountsQueryMsgFns, ExecuteMsg as Bs721AccountExecuteMsgTypes,
-    ExecuteMsgFns as BtsgAccountExecuteFns, Terp721AccountsQueryMsg, Terp721AccountsQueryMsgFns,
+    ExecuteMsgFns as TerpAccountExecuteFns, Terp721AccountsQueryMsg, Terp721AccountsQueryMsgFns,
 };
 pub use terp_account::manifold::{
     AsyncQueryMsgFns as TerpAccountMinterAsyncQueryMsgFns,
-    ExecuteMsg as Bs721AccountMinterExecuteMsgTypes, ExecuteMsgFns as BtsgAccountMinterExecuteFns,
-    QueryMsg as BtsgAccountMinterQueryMsgTypes, QueryMsgFns as BtsgAccountMinterQueryMsgFns,
+    ExecuteMsg as Bs721AccountMinterExecuteMsgTypes, ExecuteMsgFns as TerpAccountMinterExecuteFns,
+    QueryMsg as TerpAccountMinterQueryMsgTypes, QueryMsgFns as TerpAccountMinterQueryMsgFns,
 };
 // pub use cw721_base::msg::{
-//     AsyncQueryMsgFns as TerpAccountMinterAsyncQueryMsgFn, ExecuteMsgFns as Btsg721BaseExecuteFns,
-//     QueryMsg as BtsgAccountQueryMsgTypes, QueryMsgFns as TerpAccountQueryMsgFns,
+//     AsyncQueryMsgFns as TerpAccountMinterAsyncQueryMsgFn, ExecuteMsgFns as Terp721BaseExecuteFns,
+//     QueryMsg as TerpAccountQueryMsgTypes, QueryMsgFns as TerpAccountQueryMsgFns,
 // };
 pub use terp_account::manifold::{
-    AsyncQueryMsgFns as BtsgAccountMarketAsyncQueryMsgFns,
-    ExecuteMsg as Bs721AccountMarketExecuteMsgTypes, ExecuteMsgFns as BtsgAccountMarketExecuteFns,
-    QueryMsg as BtsgAccountMarketQueryMsgTypes, QueryMsgFns as BtsgAccountMarketQueryFns,
+    AsyncQueryMsgFns as TerpAccountMarketAsyncQueryMsgFns,
+    ExecuteMsg as Bs721AccountMarketExecuteMsgTypes, ExecuteMsgFns as TerpAccountMarketExecuteFns,
+    QueryMsg as TerpAccountMarketQueryMsgTypes, QueryMsgFns as TerpAccountMarketQueryFns,
 };
 
 // pub use account_registry_middleware::{

@@ -157,8 +157,8 @@ impl NFT {
 
 #[cosmwasm_schema::cw_serde]
 pub struct TextRecord {
-    pub account: String,        // "twitter"
-    pub value: String,          // "shan3v"
+    pub account: String,        // "webiste"
+    pub value: String,          // "{"i_py_cs":"jkliuy","i_sh_cs":"fdasf","v":"0.4.2"}"
     pub verified: Option<bool>, // can only be set by oracle
 }
 

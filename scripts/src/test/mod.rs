@@ -19,14 +19,14 @@ const BASE_PRICE: u128 = 100_000_000;
 const BASE_DELEGATION: u128 = 2100000000;
 const VALIDATOR_1: &str = "val-1";
 use crate::{
-    BtsgAccountExecuteFns, BtsgAccountMarketExecuteFns, BtsgAccountMarketQueryFns,
+    TerpAccountExecuteFns, TerpAccountMarketExecuteFns, TerpAccountMarketQueryFns,
     Terp721AccountsQueryMsgFns,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::{
     networks::{GAS_TO_DEPLOY, SUPPORTED_CHAINS},
-    BtsgAccountSuite,
+    TerpAccountSuite,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -36,7 +36,7 @@ pub struct DeploymentStatus {
 }
 
 /// MockBech32 implementation for the Terp Account Suite.
-impl BtsgAccountSuite<MockBech32> {
+impl TerpAccountSuite<MockBech32> {
     /// Creates intitial suite for testing
     pub fn default_setup(
         &mut self,

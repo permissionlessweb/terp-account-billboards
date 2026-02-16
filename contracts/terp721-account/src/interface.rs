@@ -7,9 +7,9 @@ use terp_account::Metadata;
 
 /// Uploadable trait for terp721_account & use with cw-orchestrator library
 #[interface(InstantiateMsg, ExecuteMsg::<Metadata>, QueryMsg, Empty)]
-pub struct BtsgAccountCollection;
+pub struct TerpAccountCollection;
 
-impl<Chain> Uploadable for BtsgAccountCollection<Chain, Metadata> {
+impl<Chain> Uploadable for TerpAccountCollection<Chain, Metadata> {
     /// Return the path to the wasm file corresponding to the contract
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()

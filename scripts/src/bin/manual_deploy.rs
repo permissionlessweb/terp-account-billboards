@@ -3,7 +3,7 @@ use clap::Parser;
 use cw_orch::{daemon::DaemonBuilder, prelude::*};
 use terp_account::DEPLOYMENT_DAO;
 use terp_account_scripts::{
-    networks::{ping_grpc, terp_MAINNET, terp_TESTNET},
+    networks::{ping_grpc, TERP_MAINNET, terp_TESTNET},
     *,
 };
 use tokio::runtime::Runtime;
@@ -29,7 +29,7 @@ fn main() {
     println!("Deploying Terp Accounts Framework...");
 
     let terp_chain = match args.network.as_str() {
-        "main" => terp_MAINNET.to_owned(),
+        "main" => TERP_MAINNET.to_owned(),
         "testnet" => terp_TESTNET.to_owned(),
         // "local" => LOCAL_NETWORK1.to_owned(),
         _ => panic!("Invalid network"),
@@ -60,7 +60,7 @@ fn manual_deploy(network: ChainInfoOwned, _method: String) -> anyhow::Result<()>
     println!("Using AuthZ granter: {}", le_granter);
     chain.sender_mut().set_authz_granter(le_granter);
 
-    let _btsg = BtsgAccountSuite::deploy_on(chain.clone(), le_granter.clone())?;
+    let _terp = TerpAccountSuite::deploy_on(chain.clone(), le_granter.clone())?;
 
     Ok(())
 }

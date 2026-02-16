@@ -1,4 +1,4 @@
-use crate::BtsgAccountMarketExecuteFns;
+use crate::TerpAccountMarketExecuteFns;
 use abstract_interface::{AbstractIbc, AccountI, AnsHost, ModuleFactory, Registry};
 use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
 use anyhow::anyhow;
@@ -7,10 +7,10 @@ use cosmwasm_std::{
 };
 use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 use ownership_verifier::interface::TestingOwnershipVerifier;
-use terp721_account::interface::BtsgAccountCollection;
+use terp721_account::interface::TerpAccountCollection;
 use terp721_account::ACCOUNT_CONTRACT;
 use terp721_account_manifold::contract::ACCOUNT_MANIFOLD_CONTRACT;
-use terp721_account_manifold::interface::BtsgAccountMinter;
+use terp721_account_manifold::interface::TerpAccountMinter;
 
 use terp_account::{
     Metadata, CURRENT_BASE_DELEGATION, CURRENT_BASE_PRICE, CURRENT_COOLDOWN_FEE,
@@ -18,7 +18,7 @@ use terp_account::{
 };
 
 use cw_orch::prelude::*;
-pub struct BtsgAccountSuite<Chain>
+pub struct TerpAccountSuite<Chain>
 where
     Chain: cw_orch::prelude::CwEnv,
 {
@@ -27,8 +27,8 @@ where
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
     // terp-account
-    pub nft: BtsgAccountCollection<Chain, Metadata>,
-    pub manifold: BtsgAccountMinter<Chain>,
+    pub nft: TerpAccountCollection<Chain, Metadata>,
+    pub manifold: TerpAccountMinter<Chain>,
 
     pub(crate) test_owner: TestingOwnershipVerifier<Chain>,
     pub(crate) account: AccountI<Chain>,
@@ -38,11 +38,11 @@ where
 pub const BLS_PUBKEY: &str = "";
 pub const CW_BLOB: &str = "cw:blob";
 
-impl<Chain: CwEnv> BtsgAccountSuite<Chain> {
-    pub fn new(chain: Chain) -> BtsgAccountSuite<Chain> {
-        BtsgAccountSuite::<Chain> {
-            nft: BtsgAccountCollection::new(ACCOUNT_CONTRACT, chain.clone()),
-            manifold: BtsgAccountMinter::new(ACCOUNT_MANIFOLD_CONTRACT, chain.clone()),
+impl<Chain: CwEnv> TerpAccountSuite<Chain> {
+    pub fn new(chain: Chain) -> TerpAccountSuite<Chain> {
+        TerpAccountSuite::<Chain> {
+            nft: TerpAccountCollection::new(ACCOUNT_CONTRACT, chain.clone()),
+            manifold: TerpAccountMinter::new(ACCOUNT_MANIFOLD_CONTRACT, chain.clone()),
             test_owner: TestingOwnershipVerifier::new("ownership_verifier", chain.clone()),
             ans_host: AnsHost::new(ANS_HOST, chain.clone()),
             registry: Registry::new(REGISTRY, chain.clone()),
@@ -63,13 +63,13 @@ impl<Chain: CwEnv> BtsgAccountSuite<Chain> {
 }
 
 // Terp Accounts `Deploy` Suite
-impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for BtsgAccountSuite<Chain> {
+impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for TerpAccountSuite<Chain> {
     // We don't have a custom error type
     type Error = CwOrchError;
     type DeployData = Addr;
 
     fn store_on(chain: Chain) -> Result<Self, Self::Error> {
-        let suite = BtsgAccountSuite::new(chain.clone());
+        let suite = TerpAccountSuite::new(chain.clone());
         suite.upload()?;
         Ok(suite)
     }
@@ -85,7 +85,7 @@ impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for BtsgAccountSuite<Chain> 
 
     fn deploy_on(chain: Chain, data: Self::DeployData) -> Result<Self, Self::Error> {
         // ########### Upload ##############
-        let mut suite: BtsgAccountSuite<Chain> = BtsgAccountSuite::store_on(chain.clone())?;
+        let mut suite: TerpAccountSuite<Chain> = TerpAccountSuite::store_on(chain.clone())?;
 
         // // // // // // // // // // // // // // // // // //
         //  THIOL ACCOUNT TOKENS

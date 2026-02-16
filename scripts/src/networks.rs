@@ -6,14 +6,14 @@ use cw_orch::prelude::{networks::OSMOSIS_1, *};
 use reqwest::Url;
 use std::net::TcpStream;
 
-pub const SUPPORTED_CHAINS: &[ChainInfo] = &[terp_MAINNET, OSMOSIS_1];
-pub const terp_SUPPORTED_NETWORKS: &[ChainInfo] = SUPPORTED_CHAINS;
+pub const SUPPORTED_CHAINS: &[ChainInfo] = &[TERP_MAINNET, OSMOSIS_1];
+pub const TERP_SUPPORTED_NETWORKS: &[ChainInfo] = SUPPORTED_CHAINS;
 pub const GAS_TO_DEPLOY: u64 = 60_000_000;
 
 /// A helper function to retrieve a [`ChainInfo`] struct for a given chain-id.
 /// supported chains are defined by the `SUPPORTED_CHAINS` variable
 pub fn terp_parse_networks(net_id: &str) -> Result<ChainInfo, String> {
-    terp_SUPPORTED_NETWORKS
+    TERP_SUPPORTED_NETWORKS
         .iter()
         .find(|net| net.chain_id == net_id)
         .cloned()
@@ -21,19 +21,19 @@ pub fn terp_parse_networks(net_id: &str) -> Result<ChainInfo, String> {
 }
 
 /// Terp: <https://github.com/cosmos/chain-registry/blob/master/terp/chain.json>
-pub const terp_NETWORK: NetworkInfo = NetworkInfo {
+pub const TERP_NETWORK: NetworkInfo = NetworkInfo {
     chain_name: "Terp",
     pub_address_prefix: "terp",
     coin_type: 639u32,
 };
 
-pub const terp_MAINNET: ChainInfo = ChainInfo {
+pub const TERP_MAINNET: ChainInfo = ChainInfo {
     kind: ChainKind::Mainnet,
     chain_id: "terp-2b",
     gas_denom: "uthiol",
     gas_price: 0.025,
-    grpc_urls: &["http://terp-grpc.polkachu.com:16090"],
-    network_info: terp_NETWORK,
+    grpc_urls: &[],
+    network_info: TERP_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };
@@ -43,8 +43,8 @@ pub const terp_TESTNET: ChainInfo = ChainInfo {
     chain_id: "bobnet",
     gas_denom: "uthiol",
     gas_price: 0.025,
-    grpc_urls: &["http://"],
-    network_info: terp_NETWORK,
+    grpc_urls: &[],
+    network_info: TERP_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };

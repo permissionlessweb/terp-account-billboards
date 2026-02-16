@@ -22,10 +22,10 @@ cosmrs                      = { version = "0.22.0" }
 
 # NFT & Account Contracts
 cw721-base                  = { workspace = true }
-terp-account                = { path = "../packages/terp-account" }
+terp-account                = { path = "../packages/terp-account", features = ["interface"] }
 terp-auth                   = { workspace = true }
-terp721-account             = { workspace = true, features = ["library"] }
-terp721-account-manifold    = { workspace = true, features = ["library"] }
+terp721-account             = { workspace = true, features = ["library", "interface"] }
+terp721-account-manifold    = { workspace = true, features = ["library", "interface"] }
 
 # Abstract & CW-Orchestrator
 abstract-std                = { workspace = true }
