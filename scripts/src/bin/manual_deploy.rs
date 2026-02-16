@@ -3,7 +3,7 @@ use clap::Parser;
 use cw_orch::{daemon::DaemonBuilder, prelude::*};
 use terp_account::DEPLOYMENT_DAO;
 use terp_account_scripts::{
-    networks::{ping_grpc, TERP_MAINNET, terp_TESTNET},
+    networks::{ping_grpc, LOCAL_TERP, TERP_MAINNET, terp_TESTNET},
     *,
 };
 use tokio::runtime::Runtime;
@@ -20,22 +20,20 @@ struct Args {
 }
 
 fn main() {
-    // parse cargo command arguments for network type
     let args = Args::parse();
-    // logs any errors
     env_logger::init();
     dotenv::dotenv().ok();
 
     println!("Deploying Terp Accounts Framework...");
 
-    let terp_chain = match args.network.as_str() {
-        "main" => TERP_MAINNET.to_owned(),
-        "testnet" => terp_TESTNET.to_owned(),
-        // "local" => LOCAL_NETWORK1.to_owned(),
-        _ => panic!("Invalid network"),
+    let (terp_chain, is_local) = match args.network.as_str() {
+        "main" => (TERP_MAINNET.to_owned(), false),
+        "testnet" => (terp_TESTNET.to_owned(), false),
+        "local" => (LOCAL_TERP.to_owned(), true),
+        _ => panic!("Invalid network: use main, testnet, or local"),
     };
 
-    if let Err(ref err) = manual_deploy(terp_chain.into(), args.method) {
+    if let Err(ref err) = manual_deploy(terp_chain.into(), args.method, is_local) {
         log::error!("{}", err);
         err.chain()
             .skip(1)
@@ -45,7 +43,7 @@ fn main() {
     }
 }
 
-fn manual_deploy(network: ChainInfoOwned, _method: String) -> anyhow::Result<()> {
+fn manual_deploy(network: ChainInfoOwned, _method: String, is_local: bool) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     let urls = network.grpc_urls.to_vec();
     for url in urls {
@@ -56,16 +54,28 @@ fn manual_deploy(network: ChainInfoOwned, _method: String) -> anyhow::Result<()>
         .handle(rt.handle())
         .build()?;
 
-    let le_granter = &Addr::unchecked(DEPLOYMENT_DAO.to_string());
-    println!("Using AuthZ granter: {}", le_granter);
-    chain.sender_mut().set_authz_granter(le_granter);
+    // For local network, use sender as admin (no AuthZ DAO)
+    // For mainnet/testnet, use the DEPLOYMENT_DAO as AuthZ granter
+    let admin = if is_local {
+        chain.sender_addr()
+    } else {
+        let le_granter = Addr::unchecked(DEPLOYMENT_DAO.to_string());
+        println!("Using AuthZ granter: {}", le_granter);
+        chain.sender_mut().set_authz_granter(&le_granter);
+        le_granter
+    };
 
-    let _terp = TerpAccountSuite::deploy_on(chain.clone(), le_granter.clone())?;
+    let suite = TerpAccountSuite::deploy_on(chain.clone(), admin)?;
+
+    // Print addresses for shell script consumption
+    println!(
+        "CONTRACT_ADDR:terp721_account={}",
+        suite.nft.addr_str()?
+    );
+    println!(
+        "CONTRACT_ADDR:terp721_account_manifold={}",
+        suite.manifold.addr_str()?
+    );
 
     Ok(())
 }
-
-// TODO:
-// fn standard_mint() {}
-// fn select_bids() {}
-// fn load_from_state() {}

@@ -49,11 +49,16 @@ pub const terp_TESTNET: ChainInfo = ChainInfo {
     fcd_url: None,
 };
 
-// Localnet
-const LOCAL_NET: NetworkInfo = NetworkInfo {
-    chain_name: "Local Network",
-    pub_address_prefix: "mock",
-    coin_type: 114u32,
+/// Local Docker chain (localterp bootstrap)
+pub const LOCAL_TERP: ChainInfo = ChainInfo {
+    kind: ChainKind::Local,
+    chain_id: "120u-1",
+    gas_denom: "uterp",
+    gas_price: 0.25,
+    grpc_urls: &["http://localhost:9090"],
+    network_info: TERP_NETWORK,
+    lcd_url: None,
+    fcd_url: None,
 };
 
 pub async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
