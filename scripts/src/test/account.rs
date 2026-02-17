@@ -489,13 +489,13 @@ fn test_nft_new() {
 fn test_metadata() {
     // Test 1: default() sets account_ownership to false
     let default_metadata = Metadata::default();
-    assert_eq!(default_metadata.account_ownership, false);
+    assert!(!default_metadata.account_ownership);
     assert_eq!(default_metadata.image_nft, None);
     assert_eq!(default_metadata.records, vec![]);
 
     // Test 2: default_with_account() enables account_ownership
     let account_metadata = Metadata::default_with_account();
-    assert_eq!(account_metadata.account_ownership, true);
+    assert!(account_metadata.account_ownership);
     assert_eq!(account_metadata.image_nft, None);
     assert_eq!(account_metadata.records, vec![]);
 
@@ -525,7 +525,7 @@ fn test_metadata() {
 
     // Test 5: round-trip serde test (optional but strong)
     let deserialized: Metadata = cosmwasm_std::from_json(&json_str).unwrap();
-    assert_eq!(deserialized.account_ownership, true);
+    assert!(deserialized.account_ownership);
     assert_eq!(deserialized.image_nft.as_ref().unwrap().token_id, "1");
     assert_eq!(deserialized.records[0].account, "website");
 }

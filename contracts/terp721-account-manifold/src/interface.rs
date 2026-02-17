@@ -4,7 +4,7 @@ use crate::contract::{execute, instantiate, query, sudo, ACCOUNT_MANIFOLD_CONTRA
 use crate::hooks::reply;
 use terp_account::manifold::{ExecuteMsg, InstantiateMsg, QueryMsg};
 /// Uploadable trait for terp721_account_manifold & use with cw-orchestrator library
-#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, cosmwasm_std::Empty)]
 pub struct TerpAccountMinter;
 
 impl<Chain> Uploadable for TerpAccountMinter<Chain> {
@@ -15,7 +15,7 @@ impl<Chain> Uploadable for TerpAccountMinter<Chain> {
             .unwrap()
     }
     /// Returns a CosmWasm contract wrapper
-    fn wrapper() -> Box<dyn MockContract<Empty>> {
+    fn wrapper() -> Box<dyn MockContract<cosmwasm_std::Empty>> {
         Box::new(
             ContractWrapper::new_with_empty(execute, instantiate, query)
                 .with_sudo(sudo)

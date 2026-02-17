@@ -324,7 +324,7 @@ mod execute {
                 token_id: token_id.to_string(),
                 bidder: bidder.clone(),
                 amount: BID_AMOUNT.into(),
-                created_time: mock.block_info()?.time.clone(),
+                created_time: mock.block_info()?.time,
             }],
         );
         assert_eq!(
@@ -333,7 +333,7 @@ mod execute {
                 token_id: token_id.to_string(),
                 bidder: bidder.clone(),
                 amount: BID_AMOUNT.into(),
-                created_time: mock.block_info()?.time.clone(),
+                created_time: mock.block_info()?.time,
             }],
         );
 
@@ -343,7 +343,7 @@ mod execute {
                 token_id: token_id.to_string(),
                 bidder: bidder.clone(),
                 amount: BID_AMOUNT.into(),
-                created_time: mock.block_info()?.time.clone(),
+                created_time: mock.block_info()?.time,
             }],
         );
 
@@ -620,8 +620,8 @@ mod execute {
         assert_eq!(res.cooldown_duration, 69);
         assert_eq!(res.cooldown_fee, coin(69u128, "jerets"));
 
-        let new = mock.addr_make("new-jawn");
-        let newnew = mock.addr_make("newer-jawn");
+        let _new = mock.addr_make("new-jawn");
+        let _newnew = mock.addr_make("newer-jawn");
 
         Ok(())
     }
@@ -751,7 +751,7 @@ mod execute {
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string(),
                     },
-                    &vec![coin(500_000_000, "uthiol")],
+                    &[coin(500_000_000, "uthiol")],
                 )
                 .unwrap_err()
                 .root()
@@ -766,7 +766,7 @@ mod execute {
                     &ExecuteMsg::CancelCooldown {
                         token_id: "babber".to_string(),
                     },
-                    &vec![coin(500_000_000, "uthiol")],
+                    &[coin(500_000_000, "uthiol")],
                 )
                 .unwrap_err()
                 .root()
@@ -781,7 +781,7 @@ mod execute {
                     &ExecuteMsg::FinalizeBid {
                         token_id: "babber".to_string(),
                     },
-                    &vec![coin(500_000_000, "uthiol")],
+                    &[coin(500_000_000, "uthiol")],
                 )
                 .unwrap_err()
                 .root()
@@ -854,7 +854,7 @@ mod execute {
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string()
                     },
-                    &vec![]
+                    &[]
                 )
                 .unwrap_err()
                 .root()
@@ -868,7 +868,7 @@ mod execute {
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string()
                     },
-                    &vec![coin(499_000_000, "uthiol")]
+                    &[coin(499_000_000, "uthiol")]
                 )
                 .unwrap_err()
                 .root()
@@ -886,7 +886,7 @@ mod execute {
                     &ExecuteMsg::CancelCooldown {
                         token_id: account.to_string()
                     },
-                    &vec![coin(499_000_000, "uthiol")]
+                    &[coin(499_000_000, "uthiol")]
                 )
                 .unwrap_err()
                 .root()
@@ -897,7 +897,7 @@ mod execute {
             &ExecuteMsg::CancelCooldown {
                 token_id: account.to_string(),
             },
-            &vec![coin(500_000_000, "uthiol")],
+            &[coin(500_000_000, "uthiol")],
         )?;
         let dd_balance = mock.query_balance(&Addr::unchecked(DEPLOYMENT_DAO), "uthiol")?;
         let bidder_balance_c = mock.query_balance(&bidder, "uthiol")?;

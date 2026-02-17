@@ -68,10 +68,7 @@ fn manual_deploy(network: ChainInfoOwned, _method: String, is_local: bool) -> an
     let suite = TerpAccountSuite::deploy_on(chain.clone(), admin)?;
 
     // Print addresses for shell script consumption
-    println!(
-        "CONTRACT_ADDR:terp721_account={}",
-        suite.nft.addr_str()?
-    );
+    println!("CONTRACT_ADDR:terp721_account={}", suite.nft.addr_str()?);
     println!(
         "CONTRACT_ADDR:terp721_account_manifold={}",
         suite.manifold.addr_str()?

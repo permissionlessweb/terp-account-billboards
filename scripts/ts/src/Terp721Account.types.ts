@@ -210,13 +210,6 @@ export type QueryMsg = {
     token_id: string;
   };
 } | {
-  all_operators: {
-    include_expired?: boolean | null;
-    limit?: number | null;
-    owner: string;
-    start_after?: string | null;
-  };
-} | {
   num_tokens: {};
 } | {
   contract_info: {};
@@ -243,6 +236,12 @@ export type QueryMsg = {
 } | {
   minter: {};
 } | {
+  operator: {
+    include_expired?: boolean | null;
+    operator: string;
+    owner: string;
+  };
+} | {
   ownership: {};
 };
 export type String = string;
@@ -261,9 +260,6 @@ export interface Approval {
 export interface NftInfoResponseForMetadata {
   extension: Metadata;
   token_uri?: string | null;
-}
-export interface OperatorsResponse {
-  operators: Approval[];
 }
 export interface TokensResponse {
   tokens: string[];
@@ -301,6 +297,9 @@ export interface OwnershipForAddr {
 }
 export interface NumTokensResponse {
   count: number;
+}
+export interface OperatorResponse {
+  approval: Approval;
 }
 export interface OwnershipForString {
   owner?: string | null;

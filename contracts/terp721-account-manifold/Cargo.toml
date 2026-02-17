@@ -10,9 +10,10 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [features]
+default = []
 # use library feature to disable all instantiate/execute/query exports
 library = []
-interface = ["dep:cw-orch"]
+interface = ["cw-orch"]
 
 [dependencies]
 # ─── Local & Workspace Crates ────────────────────────────────────────

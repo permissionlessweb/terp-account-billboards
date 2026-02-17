@@ -1,21 +1,14 @@
-use crate::TerpAccountMarketExecuteFns;
 use abstract_interface::{AbstractIbc, AccountI, AnsHost, ModuleFactory, Registry};
-use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
-use anyhow::anyhow;
-use cosmwasm_std::{
-    coin, instantiate2_address, Binary, CanonicalAddr, Instantiate2AddressError, Uint128,
-};
-use cw_blob::interface::{CwBlob, DeterministicInstantiation};
+use abstract_std::{ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
+use cosmwasm_std::{coin, Uint128};
+use cw_blob::interface::CwBlob;
 use ownership_verifier::interface::TestingOwnershipVerifier;
 use terp721_account::interface::TerpAccountCollection;
 use terp721_account::ACCOUNT_CONTRACT;
 use terp721_account_manifold::contract::ACCOUNT_MANIFOLD_CONTRACT;
 use terp721_account_manifold::interface::TerpAccountMinter;
 
-use terp_account::{
-    Metadata, CURRENT_BASE_DELEGATION, CURRENT_BASE_PRICE, CURRENT_COOLDOWN_FEE,
-    CURRENT_MINIMUM_BID_PRICE,
-};
+use terp_account::{Metadata, CURRENT_BASE_PRICE, CURRENT_COOLDOWN_FEE, CURRENT_MINIMUM_BID_PRICE};
 
 use cw_orch::prelude::*;
 pub struct TerpAccountSuite<Chain>
@@ -85,7 +78,7 @@ impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for TerpAccountSuite<Chain> 
 
     fn deploy_on(chain: Chain, data: Self::DeployData) -> Result<Self, Self::Error> {
         // ########### Upload ##############
-        let mut suite: TerpAccountSuite<Chain> = TerpAccountSuite::store_on(chain.clone())?;
+        let suite: TerpAccountSuite<Chain> = TerpAccountSuite::store_on(chain.clone())?;
 
         // // // // // // // // // // // // // // // // // //
         //  THIOL ACCOUNT TOKENS
@@ -98,7 +91,7 @@ impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for TerpAccountSuite<Chain> 
                     min_price: Uint128::from(CURRENT_MINIMUM_BID_PRICE),
                     ask_interval: 60,
                     valid_bid_query_limit: 30,
-                    cooldown_timeframe: 60 * 60 * 24 * 14 as u64, // 14 days
+                    cooldown_timeframe: 60 * 60 * 24 * 14_u64, // 14 days
                     cooldown_cancel_fee: coin(CURRENT_COOLDOWN_FEE.into(), "uthiol"),
                     hooks_admin: None,
                     admin: Some(data.to_string()),
