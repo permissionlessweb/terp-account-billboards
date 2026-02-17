@@ -1,6 +1,7 @@
 use cosmwasm_schema::cw_serde;
 use cw721::msg::{
-    AllNftInfoResponse, ApprovalResponse, NftInfoResponse, OperatorsResponse, OwnerOfResponse,
+    AllNftInfoResponse, ApprovalResponse, NftInfoResponse, OperatorResponse, OperatorsResponse,
+    OwnerOfResponse,
 };
 use cw721::Approval;
 use serde::de::DeserializeOwned;
@@ -43,22 +44,20 @@ impl Terp721Account {
         querier.query(&query)
     }
 
-    pub fn all_operators<T: Into<String>>(
+    pub fn operator<T: Into<String>>(
         &self,
         querier: &cosmwasm_std::QuerierWrapper,
         owner: T,
+        operator: T,
         include_expired: bool,
-        start_after: Option<String>,
-        limit: Option<u32>,
-    ) -> StdResult<Vec<Approval>> {
-        let req = Terp721AccountsQueryMsg::AllOperators {
+    ) -> StdResult<Approval> {
+        let req = Terp721AccountsQueryMsg::Operator {
             owner: owner.into(),
+            operator: operator.into(),
             include_expired: Some(include_expired),
-            start_after,
-            limit,
         };
-        let res: OperatorsResponse = self.query(querier, req)?;
-        Ok(res.operators)
+        let res: OperatorResponse = self.query(querier, req)?;
+        Ok(res.approval)
     }
 
     /// With metadata extension

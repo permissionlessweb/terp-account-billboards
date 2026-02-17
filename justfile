@@ -9,7 +9,7 @@ lint:
 test:
     cargo test
 
-optimize:
+wasm:
 	sh scripts/sh/optimize.sh
 
 schema:

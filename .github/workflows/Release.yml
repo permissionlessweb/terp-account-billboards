@@ -15,11 +15,11 @@ jobs:
         with:
           command: install
           args: cargo-run-script
-      - name: Run cargo optimize
+      - name: Run cargo wasm
         uses: actions-rs/cargo@v1
         with:
           command: run-script
-          args: optimize
+          args: wasm
       - name: Get release ID
         id: get_release
         uses: bruceadams/get-release@v1.2.3

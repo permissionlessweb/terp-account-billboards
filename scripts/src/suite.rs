@@ -90,31 +90,35 @@ impl<Chain: CwEnv> cw_orch::contract::Deploy<Chain> for TerpAccountSuite<Chain> 
         // // // // // // // // // // // // // // // // // //
         //  THIOL ACCOUNT TOKENS
         // // // // // // // // // // // // // // // // // //
-        let terp721_account = suite.manifold.instantiate(
-            &terp_account::manifold::InstantiateMsg {
-                trading_fee_bps: 200,
-                min_price: Uint128::from(CURRENT_MINIMUM_BID_PRICE),
-                ask_interval: 60,
-                valid_bid_query_limit: 30,
-                cooldown_timeframe: 60 * 60 * 24 * 14 as u64, // 14 days
-                cooldown_cancel_fee: coin(CURRENT_COOLDOWN_FEE.into(), "uthiol"),
-                hooks_admin: None,
-                admin: Some(data.to_string()),
-                verifier: None,
-                collection_code_id: suite.nft.code_id()?,
-                min_account_length: 3u32,
-                max_account_length: 128u32,
-                base_price: CURRENT_BASE_PRICE.into(),
-                base_delegation: CURRENT_BASE_DELEGATION.into(),
-                mint_start_delay: None,
-            },
-            Some(&Addr::unchecked(data.to_string())),
-            &[],
-        )?;
-        // .event_attr_value("wasm", "terp721_account_address")?;
+        let terp721_account = suite
+            .manifold
+            .instantiate(
+                &terp_account::manifold::InstantiateMsg {
+                    trading_fee_bps: 200,
+                    min_price: Uint128::from(CURRENT_MINIMUM_BID_PRICE),
+                    ask_interval: 60,
+                    valid_bid_query_limit: 30,
+                    cooldown_timeframe: 60 * 60 * 24 * 14 as u64, // 14 days
+                    cooldown_cancel_fee: coin(CURRENT_COOLDOWN_FEE.into(), "uthiol"),
+                    hooks_admin: None,
+                    admin: Some(data.to_string()),
+                    verifier: None,
+                    collection_code_id: suite.nft.code_id()?,
+                    min_account_length: 3u32,
+                    max_account_length: 128u32,
+                    base_price: CURRENT_BASE_PRICE.into(),
+                    base_delegation: 0u128.into(),
+                    mint_start_delay: None,
+                },
+                Some(&Addr::unchecked(data.to_string())),
+                &[],
+            )?
+            .event_attr_value("wasm", "terp721_account_address")?;
 
         println!("terp721_account: {:#?}", terp721_account);
         println!("minter contract: {}", suite.manifold.addr_str()?);
+        suite.nft.set_address(&Addr::unchecked(terp721_account));
+
         // println!("collection contract: {}", terp721_account);
         // let account = &Addr::unchecked(terp721_account);
         // suite.nft.set_default_address(&account);

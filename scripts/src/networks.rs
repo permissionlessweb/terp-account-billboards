@@ -24,7 +24,7 @@ pub fn terp_parse_networks(net_id: &str) -> Result<ChainInfo, String> {
 pub const TERP_NETWORK: NetworkInfo = NetworkInfo {
     chain_name: "Terp",
     pub_address_prefix: "terp",
-    coin_type: 639u32,
+    coin_type: 118u32,
 };
 
 pub const TERP_MAINNET: ChainInfo = ChainInfo {
@@ -38,7 +38,7 @@ pub const TERP_MAINNET: ChainInfo = ChainInfo {
     fcd_url: None,
 };
 
-pub const terp_TESTNET: ChainInfo = ChainInfo {
+pub const TERP_TESTNET: ChainInfo = ChainInfo {
     kind: ChainKind::Testnet,
     chain_id: "bobnet",
     gas_denom: "uthiol",

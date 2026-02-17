@@ -3,7 +3,7 @@ use clap::Parser;
 use cw_orch::{daemon::DaemonBuilder, prelude::*};
 use terp_account::DEPLOYMENT_DAO;
 use terp_account_scripts::{
-    networks::{ping_grpc, LOCAL_TERP, TERP_MAINNET, terp_TESTNET},
+    networks::{ping_grpc, LOCAL_TERP, TERP_MAINNET, TERP_TESTNET},
     *,
 };
 use tokio::runtime::Runtime;
@@ -28,7 +28,7 @@ fn main() {
 
     let (terp_chain, is_local) = match args.network.as_str() {
         "main" => (TERP_MAINNET.to_owned(), false),
-        "testnet" => (terp_TESTNET.to_owned(), false),
+        "testnet" => (TERP_TESTNET.to_owned(), false),
         "local" => (LOCAL_TERP.to_owned(), true),
         _ => panic!("Invalid network: use main, testnet, or local"),
     };

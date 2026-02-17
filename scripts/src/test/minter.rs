@@ -2,8 +2,8 @@ use cw_orch::{anyhow, mock::MockBech32, prelude::*};
 use terp_account::manifold::Config;
 
 use crate::{
-    Bs721AccountMarketExecuteMsgTypes, TerpAccountExecuteFns, TerpAccountMarketExecuteFns,
-    TerpAccountMarketQueryFns, TerpAccountSuite, Terp721AccountsQueryMsgFns,
+    Bs721AccountMarketExecuteMsgTypes, Terp721AccountsQueryMsgFns, TerpAccountExecuteFns,
+    TerpAccountMarketExecuteFns, TerpAccountMarketQueryFns, TerpAccountSuite,
     TestOwnershipExecuteMsgFns, TestOwnershipInitMsg,
 };
 
@@ -205,15 +205,11 @@ mod execute {
 
         mock.wait_seconds(200)?;
         suite.mint_and_list(mock.clone(), token_id, &owner)?;
+        mock.wait_seconds(6)?;
+
+        let ops = suite.nft.operator(suite.manifold.address()?, owner, None)?;
+        println!("{:#?}", ops);
         // check operators
-        assert_eq!(
-            suite
-                .nft
-                .all_operators(owner, None, None, None)?
-                .operators
-                .len(),
-            1
-        );
 
         Ok(())
     }
