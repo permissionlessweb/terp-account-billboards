@@ -105,8 +105,6 @@ fn mint_and_update() -> anyhow::Result<()> {
     assert_eq!(records[0].account, "test");
     assert_eq!(records[0].value, "test");
 
-    assert!(!suite.nft.is_twitter_verified(token_id)?);
-
     // trigger too many records error
     for i in 1..=(max_record_count) {
         let new_record = terp_account::TextRecord {

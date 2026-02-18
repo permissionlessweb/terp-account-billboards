@@ -1637,71 +1637,71 @@ mod associate_address {
 
     use super::*;
 
-    #[test]
-    fn test_abstract_account_workflow() -> anyhow::Result<()> {
-        let mock = MockBech32::new(TERP_PREFIX);
-        let mut suite = TerpAccountSuite::new(mock.clone());
-        suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
+    // #[test]
+    // fn test_abstract_account_workflow() -> anyhow::Result<()> {
+    //     let mock = MockBech32::new(TERP_PREFIX);
+    //     let mut suite = TerpAccountSuite::new(mock.clone());
+    //     suite.default_setup(mock.clone(), None, Some(mock.sender.clone()))?;
 
-        let admin_user = mock.sender.clone();
-        let token_id = "bandura";
-        let bidder = mock.addr_make("bidder");
+    //     let admin_user = mock.sender.clone();
+    //     let token_id = "bandura";
+    //     let bidder = mock.addr_make("bidder");
 
-        mock.wait_seconds(200)?;
-        suite.mint_and_list(mock.clone(), token_id, &admin_user)?;
+    //     mock.wait_seconds(200)?;
+    //     suite.mint_and_list(mock.clone(), token_id, &admin_user)?;
 
-        // set nft as ownership
-        suite.test_owner.instantiate(
-            &TestOwnershipInitMsg {
-                ownership: abstract_std::objects::gov_type::GovernanceDetails::NFT {
-                    collection_addr: suite.nft.addr_str()?,
-                    token_id: token_id.to_string(),
-                },
-            },
-            None,
-            &[],
-        )?;
+    //     // set nft as ownership
+    //     suite.test_owner.instantiate(
+    //         &TestOwnershipInitMsg {
+    //             ownership: abstract_std::objects::gov_type::GovernanceDetails::NFT {
+    //                 collection_addr: suite.nft.addr_str()?,
+    //                 token_id: token_id.to_string(),
+    //             },
+    //         },
+    //         None,
+    //         &[],
+    //     )?;
 
-        // associate account to abstract account
-        suite
-            .nft
-            .update_abs_acc_support(token_id, Some(suite.test_owner.addr_str()?))?;
+    //     // associate account to abstract account
+    //     suite
+    //         .nft
+    //         .update_abs_acc_support(token_id, Some(suite.test_owner.addr_str()?))?;
 
-        // query the associated address and ensure its the same as the abstract account
-        assert_eq!(
-            suite.nft.associated_address(token_id)?,
-            suite.test_owner.address()?
-        );
+    //     // query the associated address and ensure its the same as the abstract account
+    //     assert_eq!(
+    //         suite.nft.associated_address(token_id)?,
+    //         suite.test_owner.address()?
+    //     );
 
-        // ensure if ownership is changed before cooldown
-        suite
-            .test_owner
-            .update_ownership(abstract_std::objects::gov_type::GovernanceDetails::Renounced {})?;
+    //     // ensure if ownership is changed before cooldown
+    //     suite
+    //         .test_owner
+    //         .update_ownership(abstract_std::objects::gov_type::GovernanceDetails::Renounced {})?;
 
-        let owner_bal = mock.query_balance(&admin_user, "uthiol")?;
-        let bidder_bal = mock.query_balance(&bidder, "uthiol")?;
-        suite.bid_w_funds(mock.clone(), token_id, bidder.clone(), BID_AMOUNT)?;
-        assert_eq!(bidder_bal, Uint128::zero());
-        let _res = suite.manifold.accept_bid(bidder.clone(), token_id.into())?;
-        // assert funds go back to bidder, along with tokens if owner changes ownership prior to finalizing bid
-        mock.wait_seconds(60)?;
-        let res = suite.manifold.finalize_bid(token_id.into())?;
-        let owner_bal2 = mock.query_balance(&admin_user, "uthiol")?;
-        let bidder_bal2 = mock.query_balance(&bidder, "uthiol")?;
-        assert_eq!(BID_AMOUNT, bidder_bal2.u128());
-        assert_eq!(owner_bal, owner_bal2);
-        assert_eq!(
-            suite.nft.owner_of(token_id, None)?.owner,
-            bidder.to_string()
-        );
-        res.assert_event(&Event::new("transfer").add_attributes(vec![
-            Attribute::new("recipient", bidder.to_string()),
-            Attribute::new("sender", suite.manifold.addr_str()?),
-            Attribute::new("amount", coin(BID_AMOUNT, "uthiol").to_string()),
-        ]));
+    //     let owner_bal = mock.query_balance(&admin_user, "uthiol")?;
+    //     let bidder_bal = mock.query_balance(&bidder, "uthiol")?;
+    //     suite.bid_w_funds(mock.clone(), token_id, bidder.clone(), BID_AMOUNT)?;
+    //     assert_eq!(bidder_bal, Uint128::zero());
+    //     let _res = suite.manifold.accept_bid(bidder.clone(), token_id.into())?;
+    //     // assert funds go back to bidder, along with tokens if owner changes ownership prior to finalizing bid
+    //     mock.wait_seconds(60)?;
+    //     let res = suite.manifold.finalize_bid(token_id.into())?;
+    //     let owner_bal2 = mock.query_balance(&admin_user, "uthiol")?;
+    //     let bidder_bal2 = mock.query_balance(&bidder, "uthiol")?;
+    //     assert_eq!(BID_AMOUNT, bidder_bal2.u128());
+    //     assert_eq!(owner_bal, owner_bal2);
+    //     assert_eq!(
+    //         suite.nft.owner_of(token_id, None)?.owner,
+    //         bidder.to_string()
+    //     );
+    //     res.assert_event(&Event::new("transfer").add_attributes(vec![
+    //         Attribute::new("recipient", bidder.to_string()),
+    //         Attribute::new("sender", suite.manifold.addr_str()?),
+    //         Attribute::new("amount", coin(BID_AMOUNT, "uthiol").to_string()),
+    //     ]));
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     #[test]
     fn test_transfer_to_eoa() -> anyhow::Result<()> {

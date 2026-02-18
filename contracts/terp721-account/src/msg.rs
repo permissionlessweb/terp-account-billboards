@@ -85,6 +85,7 @@ pub enum ExecuteMsg<T> {
         expires: Option<Expiration>,
     },
     /// Allows user to define if token is being associated to an Abstract Account.
+    #[cfg(feature = "abstract")]
     UpdateAbsAccSupport {
         token_id: String,
         r#abstract: Option<String>,
@@ -185,9 +186,6 @@ pub enum Terp721AccountsQueryMsg {
     /// If being used as ownership token for EOA, will return the EOA contract, otherwise returns the owner of the token
     #[returns(Addr)]
     AssociatedAddress { account: String },
-    /// Returns the marketplace contract address
-    #[returns(Addr)]
-    AccountMarketplace {},
     /// Query a non `terp1...` address to retrieve the `terp1...` associated with it
     #[returns(Addr)]
     ReverseMapAddress { address: String },
@@ -200,9 +198,6 @@ pub enum Terp721AccountsQueryMsg {
     /// Returns the text records for a account
     #[returns(Vec<TextRecord>)]
     TextRecords { account: String },
-    /// Returns if Twitter is verified for a account
-    #[returns(bool)]
-    IsTwitterVerified { account: String },
     /// Returns the verification oracle address
     #[returns(Option<String>)]
     Verifier {},
@@ -216,11 +211,6 @@ pub enum Terp721AccountsQueryMsg {
     Approval {
         token_id: String,
         spender: String,
-        include_expired: Option<bool>,
-    },
-    #[returns(ApprovalsResponse)]
-    Approvals {
-        token_id: String,
         include_expired: Option<bool>,
     },
     #[returns(NumTokensResponse)]
@@ -278,13 +268,6 @@ impl From<Terp721AccountsQueryMsg>
             } => Cw721QueryMsg::Approval {
                 token_id,
                 spender,
-                include_expired,
-            },
-            Terp721AccountsQueryMsg::Approvals {
-                token_id,
-                include_expired,
-            } => Cw721QueryMsg::Approvals {
-                token_id,
                 include_expired,
             },
             Terp721AccountsQueryMsg::NumTokens {} => Cw721QueryMsg::NumTokens {},
