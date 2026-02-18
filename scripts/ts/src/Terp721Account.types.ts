@@ -170,8 +170,6 @@ export type QueryMsg = {
     account: string;
   };
 } | {
-  account_marketplace: {};
-} | {
   reverse_map_address: {
     address: string;
   };
@@ -188,10 +186,6 @@ export type QueryMsg = {
     account: string;
   };
 } | {
-  is_twitter_verified: {
-    account: string;
-  };
-} | {
   verifier: {};
 } | {
   owner_of: {
@@ -202,11 +196,6 @@ export type QueryMsg = {
   approval: {
     include_expired?: boolean | null;
     spender: string;
-    token_id: string;
-  };
-} | {
-  approvals: {
-    include_expired?: boolean | null;
     token_id: string;
   };
 } | {
@@ -267,9 +256,6 @@ export interface TokensResponse {
 export interface ApprovalResponse {
   approval: Approval;
 }
-export interface ApprovalsResponse {
-  approvals: Approval[];
-}
 export interface CollectionInfoAndExtensionResponseForNullable_CollectionExtensionForRoyaltyInfo {
   extension?: CollectionExtensionForRoyaltyInfo | null;
   name: string;
@@ -289,7 +275,6 @@ export interface RoyaltyInfo {
   share: Decimal;
 }
 export type NullableNFT = NFT | null;
-export type Boolean = boolean;
 export interface OwnershipForAddr {
   owner?: Addr | null;
   pending_expiry?: Expiration | null;

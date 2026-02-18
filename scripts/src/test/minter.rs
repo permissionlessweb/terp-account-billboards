@@ -4,7 +4,7 @@ use terp_account::manifold::Config;
 use crate::{
     Bs721AccountMarketExecuteMsgTypes, Terp721AccountsQueryMsgFns, TerpAccountExecuteFns,
     TerpAccountMarketExecuteFns, TerpAccountMarketQueryFns, TerpAccountSuite,
-    TestOwnershipExecuteMsgFns, TestOwnershipInitMsg,
+    TestOwnershipExecuteMsgFns,
 };
 
 use cosmwasm_std::Uint128;
@@ -1632,7 +1632,7 @@ mod public_start_time {
 
 mod associate_address {
 
-    use cosmwasm_std::{coin, Attribute, Event};
+    use cosmwasm_std::coin;
     use terp721_account::msg::{InstantiateMsg, Terp721InstantiateMsg};
 
     use super::*;
