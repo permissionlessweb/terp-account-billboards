@@ -28,7 +28,7 @@ In this repo are [cw-orchestrator scripts](../../scripts/src/bin/manual_deploy.r
 ### Compile the contracts
 
 ```sh
-just optimize
+just wasm
 ```
 
 ### Test the workspace
@@ -58,3 +58,4 @@ Checkout some documentation [here](./docs/00_disclaimer).
 ## DISCLAIMER
 
 TERP-NETWORK CODE IS PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND. No developer or entity involved in creating or instantiating Terp Network smart contracts will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of Terp Network, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value. Although Discover Decentralization DAO, and it's members configured existing code for the accounts, it does not own or control the Terp Network network.
+

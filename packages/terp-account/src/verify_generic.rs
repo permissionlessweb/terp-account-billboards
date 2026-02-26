@@ -130,14 +130,14 @@ mod tests {
         let public_key: ecdsa::VerifyingKey<k256::Secp256k1> = VerifyingKey::from(&secret_key); // Serialize with `::to_encoded_point()`
 
         let deps = mock_dependencies();
-        let btsgaddr = deps.api.with_prefix("terp").addr_make("jablerert");
+        let terpaddr = deps.api.with_prefix("terp").addr_make("jablerert");
         // base64 encode address (this is the expected value in the data object of the adr036)
-        let base64btsgaddr = &Binary::new(btsgaddr.as_bytes().to_vec()).to_base64();
+        let base64terpaddr = &Binary::new(terpaddr.as_bytes().to_vec()).to_base64();
         // this is the human readable address derived from the public key of the secret key
         let hraddr = pubkey_to_address(public_key.to_encoded_point(false).as_bytes(), "cosmos")?;
 
         // create adr036 msgs data to sign
-        let adr036msgtohash = preamble_msg_arb_036(&hraddr.to_string(), base64btsgaddr);
+        let adr036msgtohash = preamble_msg_arb_036(&hraddr.to_string(), base64terpaddr);
         // Explicit / external hashing
         // sha256 hash msgs data
         let msg_digest = Sha256::new().chain(&adr036msgtohash);
@@ -170,14 +170,14 @@ mod tests {
         CosmosArbitrary {
             pubkey: Binary::from(public_key.to_encoded_point(false).as_bytes()),
             signature: Binary::from(signature.to_bytes().as_slice()),
-            message: Binary::from(btsgaddr.as_bytes().to_vec()), // set the base64 of the address
+            message: Binary::from(terpaddr.as_bytes().to_vec()), // set the base64 of the address
             hrp: Some(hrp.to_string()),
         }
         .verify_return_readable()?;
 
         // println!("hraddr: {:#?}", hraddr);
-        // println!("btsgaddr: {:#?}", btsgaddr);
-        // println!("base64btsgaddr: {:#?}", base64btsgaddr);
+        // println!("terpaddr: {:#?}", terpaddr);
+        // println!("base64terpaddr: {:#?}", base64terpaddr);
         // println!("adr036msgtohash: {:#?}", adr036msgtohash.to_string());
         // println!("msg_hash:  {:#?}", Binary::new(msg_hash.to_vec()));
         // println!("signature:  {:#?}", Binary::new(signature.to_vec()));

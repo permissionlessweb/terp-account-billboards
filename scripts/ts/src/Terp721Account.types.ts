@@ -170,8 +170,6 @@ export type QueryMsg = {
     account: string;
   };
 } | {
-  account_marketplace: {};
-} | {
   reverse_map_address: {
     address: string;
   };
@@ -188,10 +186,6 @@ export type QueryMsg = {
     account: string;
   };
 } | {
-  is_twitter_verified: {
-    account: string;
-  };
-} | {
   verifier: {};
 } | {
   owner_of: {
@@ -203,18 +197,6 @@ export type QueryMsg = {
     include_expired?: boolean | null;
     spender: string;
     token_id: string;
-  };
-} | {
-  approvals: {
-    include_expired?: boolean | null;
-    token_id: string;
-  };
-} | {
-  all_operators: {
-    include_expired?: boolean | null;
-    limit?: number | null;
-    owner: string;
-    start_after?: string | null;
   };
 } | {
   num_tokens: {};
@@ -243,6 +225,12 @@ export type QueryMsg = {
 } | {
   minter: {};
 } | {
+  operator: {
+    include_expired?: boolean | null;
+    operator: string;
+    owner: string;
+  };
+} | {
   ownership: {};
 };
 export type String = string;
@@ -262,17 +250,11 @@ export interface NftInfoResponseForMetadata {
   extension: Metadata;
   token_uri?: string | null;
 }
-export interface OperatorsResponse {
-  operators: Approval[];
-}
 export interface TokensResponse {
   tokens: string[];
 }
 export interface ApprovalResponse {
   approval: Approval;
-}
-export interface ApprovalsResponse {
-  approvals: Approval[];
 }
 export interface CollectionInfoAndExtensionResponseForNullable_CollectionExtensionForRoyaltyInfo {
   extension?: CollectionExtensionForRoyaltyInfo | null;
@@ -293,7 +275,6 @@ export interface RoyaltyInfo {
   share: Decimal;
 }
 export type NullableNFT = NFT | null;
-export type Boolean = boolean;
 export interface OwnershipForAddr {
   owner?: Addr | null;
   pending_expiry?: Expiration | null;
@@ -301,6 +282,9 @@ export interface OwnershipForAddr {
 }
 export interface NumTokensResponse {
   count: number;
+}
+export interface OperatorResponse {
+  approval: Approval;
 }
 export interface OwnershipForString {
   owner?: string | null;

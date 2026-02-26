@@ -7,7 +7,6 @@ use cosmwasm_std::{
     coin, coins, instantiate2_address, CanonicalAddr, Decimal, Instantiate2AddressError,
     StakingMsg, Uint128,
 };
-use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 use cw_orch::{
     anyhow,
     mock::cw_multi_test::{AppResponse, Module, StakingInfo},
@@ -18,15 +17,12 @@ use terp_account::manifold::InstantiateMsg as AccountMinterInitMsg;
 const BASE_PRICE: u128 = 100_000_000;
 const BASE_DELEGATION: u128 = 2100000000;
 const VALIDATOR_1: &str = "val-1";
-use crate::{
-    BtsgAccountExecuteFns, BtsgAccountMarketExecuteFns, BtsgAccountMarketQueryFns,
-    Terp721AccountsQueryMsgFns,
-};
+use crate::{Terp721AccountsQueryMsgFns, TerpAccountExecuteFns, TerpAccountMarketQueryFns};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     networks::{GAS_TO_DEPLOY, SUPPORTED_CHAINS},
-    BtsgAccountSuite,
+    TerpAccountSuite,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -36,26 +32,26 @@ pub struct DeploymentStatus {
 }
 
 /// MockBech32 implementation for the Terp Account Suite.
-impl BtsgAccountSuite<MockBech32> {
+impl TerpAccountSuite<MockBech32> {
     /// Creates intitial suite for testing
     pub fn default_setup(
         &mut self,
         mock: MockBech32,
-        creator: Option<Addr>,
-        admin: Option<Addr>,
+        _creator: Option<Addr>,
+        _admin: Option<Addr>,
     ) -> anyhow::Result<()> {
         self.upload()?;
         self.test_owner.upload()?;
         self.blob.upload()?;
 
-        let admin2 = mock.addr_make("admin2");
+        let _admin2 = mock.addr_make("admin2");
         mock.add_balance(&mock.sender, vec![coin(10500000000, "uthiol")])?;
-        let blob_code_id = self.blob.code_id()?;
+        let _blob_code_id = self.blob.code_id()?;
         let sender_addr = mock.sender_addr();
         let admin = sender_addr.to_string();
         let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
         let canon_creator = CanonicalAddr::from(creator_account_id.to_bytes());
-        let expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
+        let _expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
             instantiate2_address(&cw_blob::CHECKSUM, &canon_creator, salt)
         };
 

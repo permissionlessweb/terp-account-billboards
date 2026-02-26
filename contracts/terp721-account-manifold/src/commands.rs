@@ -49,7 +49,7 @@ pub fn execute_mint_and_list(
     let price = validate_payment(acc_len, &info, params.base_price.u128())?;
     validate_staking(
         deps.as_ref(),
-        info.sender.as_ref(),
+        sender.as_ref(),
         acc_len,
         params.base_delegation,
     )?;
@@ -61,7 +61,13 @@ pub fn execute_mint_and_list(
     }
 
     // SET ASK
-    execute_set_ask(deps, env, &account.to_string(), info.sender)?;
+    execute_set_ask(
+        deps,
+        env,
+        &account.to_string(),
+        info.sender,
+        collection.clone(),
+    )?;
 
     // mint token
     let mint_msg_exec = WasmMsg::Execute {
@@ -286,22 +292,15 @@ pub fn execute_set_ask(
     env: Env,
     token_id: &str,
     seller: Addr,
+    collection: Addr,
 ) -> Result<Response, ContractError> {
-    let collection = ACCOUNT_COLLECTION.load(deps.storage)?;
-
     // check if collection is approved to transfer on behalf of the seller
-    let ops = Terp721Account(collection).all_operators(
+    Terp721Account(collection).operator(
         &deps.querier,
         seller.to_string(),
+        env.contract.address.to_string(),
         false,
-        None,
-        None,
     )?;
-
-    // println!("{:#?}", ops);
-    if ops.is_empty() {
-        return Err(ContractError::NotApproved {});
-    }
 
     let renewal_time = env.block.time.plus_seconds(31536000u64);
 

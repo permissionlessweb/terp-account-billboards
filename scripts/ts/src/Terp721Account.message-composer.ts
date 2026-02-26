@@ -8,7 +8,7 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "cosmwasm";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { Decimal, Timestamp, Uint64, InstantiateMsg, Cw721InstantiateMsgForNullable_CollectionExtensionMsgForRoyaltyInfoResponse, CollectionExtensionMsgForRoyaltyInfoResponse, RoyaltyInfoResponse, ExecuteMsg, Addr, Binary, Expiration, NFT, TextRecord, Metadata, CosmosArbitrary, QueryMsg, String, AllNftInfoResponseForMetadata, OwnerOfResponse, Approval, NftInfoResponseForMetadata, OperatorsResponse, TokensResponse, ApprovalResponse, ApprovalsResponse, CollectionInfoAndExtensionResponseForNullable_CollectionExtensionForRoyaltyInfo, CollectionExtensionForRoyaltyInfo, RoyaltyInfo, NullableNFT, Boolean, OwnershipForAddr, NumTokensResponse, OwnershipForString, SudoParams, ArrayOfTextRecord, NullableString } from "./Terp721Account.types";
+import { Decimal, Timestamp, Uint64, InstantiateMsg, Cw721InstantiateMsgForNullable_CollectionExtensionMsgForRoyaltyInfoResponse, CollectionExtensionMsgForRoyaltyInfoResponse, RoyaltyInfoResponse, ExecuteMsg, Addr, Binary, Expiration, NFT, TextRecord, Metadata, CosmosArbitrary, QueryMsg, String, AllNftInfoResponseForMetadata, OwnerOfResponse, Approval, NftInfoResponseForMetadata, TokensResponse, ApprovalResponse, CollectionInfoAndExtensionResponseForNullable_CollectionExtensionForRoyaltyInfo, CollectionExtensionForRoyaltyInfo, RoyaltyInfo, NullableNFT, OwnershipForAddr, NumTokensResponse, OperatorResponse, OwnershipForString, SudoParams, ArrayOfTextRecord, NullableString } from "./Terp721Account.types";
 export interface Terp721AccountMessage {
   contractAddress: string;
   sender: string;

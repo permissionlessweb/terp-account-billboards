@@ -20,6 +20,7 @@ use terp_account::{
 };
 
 pub mod manifest {
+    #[cfg(feature = "abstract")]
     use abstract_std::objects::{
         gov_type::GovernanceDetails,
         ownership::{self, Ownership},
@@ -44,6 +45,8 @@ pub mod manifest {
         // prevent any changes if account is in cooldown
         let market = &ACCOUNT_MANIFOLD.load(deps.storage)?;
         ensure_not_in_cooldown(deps.as_ref(), &market, &account)?;
+
+        #[cfg(feature = "abstract")]
         let mut ownership: Ownership<String> = Ownership {
             owner: ownership::GovernanceDetails::Renounced {},
             pending_owner: None,
@@ -60,33 +63,39 @@ pub mod manifest {
                         REVERSE_MAP.remove(deps.storage, &Addr::unchecked(address));
                         Ok(())
                     } else {
-                        // token_uri has been set to the abstract-account address. Query who it has set as its current owner.
-                        let current_owner: Ownership<String> = deps.querier.query_wasm_smart(
-                            &address,
-                            &abstract_std::account::QueryMsg::Ownership {},
-                        )?;
-                        // if it has the same nft & token-id set as its owner,
-                        // we must also have this address associated to the account in our reverse map,
-                        // so we musst remove.
-                        match current_owner.owner.clone() {
-                            ownership::GovernanceDetails::NFT {
-                                collection_addr,
-                                token_id,
-                            } => {
-                                if account != token_id || collection_addr != oca.to_string() {
+                        #[cfg(not(feature = "abstract"))]
+                        REVERSE_MAP.remove(deps.storage, &Addr::unchecked(address));
+                        #[cfg(feature = "abstract")]
+                        {
+                            // token_uri has been set to the abstract-account address. Query who it has set as its current owner.
+                            let current_owner: Ownership<String> = deps.querier.query_wasm_smart(
+                                &address,
+                                &abstract_std::account::QueryMsg::Ownership {},
+                            )?;
+                            // if it has the same nft & token-id set as its owner,
+                            // we must also have this address associated to the account in our reverse map,
+                            // so we musst remove.
+                            match current_owner.owner.clone() {
+                                ownership::GovernanceDetails::NFT {
+                                    collection_addr,
+                                    token_id,
+                                } => {
+                                    if account != token_id || collection_addr != oca.to_string() {
+                                        // removes mapping
+                                        REVERSE_MAP.remove(deps.storage, &Addr::unchecked(address));
+                                    } else {
+                                        // keeps mapping
+                                        ownership = current_owner
+                                    }
+                                }
+
+                                _ => {
                                     // removes mapping
                                     REVERSE_MAP.remove(deps.storage, &Addr::unchecked(address));
-                                } else {
-                                    // keeps mapping
-                                    ownership = current_owner
                                 }
                             }
-
-                            _ => {
-                                // removes mapping
-                                REVERSE_MAP.remove(deps.storage, &Addr::unchecked(address));
-                            }
                         }
+
                         Ok(())
                     }
                 } else {
@@ -98,26 +107,36 @@ pub mod manifest {
         // println!("// 2. validate the new address, prepare to save into token_uri")
         let token_uri = address
             .clone()
-            .map(|address| match ownership.owner.clone() {
-                ownership::GovernanceDetails::NFT {
-                    collection_addr,
-                    token_id,
-                } => {
-                    if account != token_id || collection_addr != oca.to_string() {
-                        return Err(ContractError::IncorrectBillboardToken {
-                            got: ownership.owner.to_string(),
-                            wanted: ownership::GovernanceDetails::NFT {
-                                collection_addr,
-                                token_id,
-                            }
-                            .to_string(),
-                        });
+            .map(|address| {
+                #[cfg(feature = "abstract")]
+                match ownership.owner.clone() {
+                    ownership::GovernanceDetails::NFT {
+                        collection_addr,
+                        token_id,
+                    } => {
+                        if account != token_id || collection_addr != oca.to_string() {
+                            return Err(ContractError::IncorrectBillboardToken {
+                                got: ownership.owner.to_string(),
+                                wanted: ownership::GovernanceDetails::NFT {
+                                    collection_addr,
+                                    token_id,
+                                }
+                                .to_string(),
+                            });
+                        }
+                        Ok(address)
                     }
-                    Ok(address)
+                    _ => {
+                        let addr = deps.api.addr_validate(&address)?;
+                        Ok(validate_address(deps.as_ref(), &info.sender, addr).map(|_| address)?)
+                    }
                 }
-                _ => {
+                #[cfg(not(feature = "abstract"))]
+                {
                     let addr = deps.api.addr_validate(&address)?;
-                    Ok(validate_address(deps.as_ref(), &info.sender, addr).map(|_| address)?)
+                    Ok::<std::string::String, ContractError>(
+                        validate_address(deps.as_ref(), &info.sender, addr).map(|_| address)?,
+                    )
                 }
             })
             .transpose()?;
@@ -151,11 +170,18 @@ pub mod manifest {
                 Some(mut token_info) => {
                     token_info.token_uri = token_uri.clone().map(|addr| addr.to_string());
                     // save ownership metadata if set
-                    match ownership.owner {
-                        GovernanceDetails::NFT { .. } => {
-                            token_info.extension.account_ownership = true
+                    #[cfg(not(feature = "abstract"))]
+                    {
+                        token_info.extension.account_ownership = false;
+                    }
+                    #[cfg(feature = "abstract")]
+                    {
+                        match ownership.owner {
+                            GovernanceDetails::NFT { .. } => {
+                                token_info.extension.account_ownership = true
+                            }
+                            _ => token_info.extension.account_ownership = false,
                         }
-                        _ => token_info.extension.account_ownership = false,
                     }
 
                     Ok(token_info)
@@ -430,6 +456,7 @@ pub mod manifest {
             .load(deps.storage, account)?;
 
         if let Some(tokenuri) = token.token_uri.clone() {
+            #[cfg(feature = "abstract")]
             if token.extension.account_ownership {
                 // confirm this token is still set as owner of account
                 let owner: Ownership<String> = deps

@@ -141,6 +141,7 @@ pub mod entry {
             ExecuteMsg::UpdateMyReverseMapKey { to_add, to_remove } => {
                 execute_update_reverse_map_keys(deps, env, info, to_add, to_remove)
             }
+            #[cfg(feature = "abstract")]
             ExecuteMsg::UpdateAbsAccSupport {
                 token_id,
                 r#abstract,
@@ -158,7 +159,6 @@ pub mod entry {
     pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         match msg {
             QueryMsg::Params {} => to_json_binary(&query_params(deps)?),
-            QueryMsg::AccountMarketplace {} => to_json_binary(&query_profile_marketplace(deps)?),
             QueryMsg::Account { address } => to_json_binary(&query_account(deps, address)?),
             QueryMsg::Verifier {} => to_json_binary(&VERIFIER.query_admin(deps)?),
             QueryMsg::AssociatedAddress { account } => {
@@ -167,9 +167,6 @@ pub mod entry {
             QueryMsg::ImageNFT { account } => to_json_binary(&query_image_nft(deps, &account)?),
             QueryMsg::TextRecords { account } => {
                 to_json_binary(&query_text_records(deps, &account)?)
-            }
-            QueryMsg::IsTwitterVerified { account } => {
-                to_json_binary(&query_is_twitter_verified(deps, &account)?)
             }
             QueryMsg::Minter {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
             QueryMsg::ReverseMapAccount { address } => {

@@ -6,7 +6,7 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { Decimal, Timestamp, Uint64, InstantiateMsg, Cw721InstantiateMsgForNullable_CollectionExtensionMsgForRoyaltyInfoResponse, CollectionExtensionMsgForRoyaltyInfoResponse, RoyaltyInfoResponse, ExecuteMsg, Addr, Binary, Expiration, NFT, TextRecord, Metadata, CosmosArbitrary, QueryMsg, String, AllNftInfoResponseForMetadata, OwnerOfResponse, Approval, NftInfoResponseForMetadata, OperatorsResponse, TokensResponse, ApprovalResponse, ApprovalsResponse, CollectionInfoAndExtensionResponseForNullable_CollectionExtensionForRoyaltyInfo, CollectionExtensionForRoyaltyInfo, RoyaltyInfo, NullableNFT, Boolean, OwnershipForAddr, NumTokensResponse, OwnershipForString, SudoParams, ArrayOfTextRecord, NullableString } from "./Terp721Account.types";
+import { Decimal, Timestamp, Uint64, InstantiateMsg, Cw721InstantiateMsgForNullable_CollectionExtensionMsgForRoyaltyInfoResponse, CollectionExtensionMsgForRoyaltyInfoResponse, RoyaltyInfoResponse, ExecuteMsg, Addr, Binary, Expiration, NFT, TextRecord, Metadata, CosmosArbitrary, QueryMsg, String, AllNftInfoResponseForMetadata, OwnerOfResponse, Approval, NftInfoResponseForMetadata, TokensResponse, ApprovalResponse, CollectionInfoAndExtensionResponseForNullable_CollectionExtensionForRoyaltyInfo, CollectionExtensionForRoyaltyInfo, RoyaltyInfo, NullableNFT, OwnershipForAddr, NumTokensResponse, OperatorResponse, OwnershipForString, SudoParams, ArrayOfTextRecord, NullableString } from "./Terp721Account.types";
 export interface Terp721AccountReadOnlyInterface {
   contractAddress: string;
   params: () => Promise<SudoParams>;
@@ -20,7 +20,6 @@ export interface Terp721AccountReadOnlyInterface {
   }: {
     account: string;
   }) => Promise<Addr>;
-  accountMarketplace: () => Promise<Addr>;
   reverseMapAddress: ({
     address
   }: {
@@ -41,11 +40,6 @@ export interface Terp721AccountReadOnlyInterface {
   }: {
     account: string;
   }) => Promise<ArrayOfTextRecord>;
-  isTwitterVerified: ({
-    account
-  }: {
-    account: string;
-  }) => Promise<Boolean>;
   verifier: () => Promise<NullableString>;
   ownerOf: ({
     includeExpired,
@@ -63,24 +57,6 @@ export interface Terp721AccountReadOnlyInterface {
     spender: string;
     tokenId: string;
   }) => Promise<ApprovalResponse>;
-  approvals: ({
-    includeExpired,
-    tokenId
-  }: {
-    includeExpired?: boolean;
-    tokenId: string;
-  }) => Promise<ApprovalsResponse>;
-  allOperators: ({
-    includeExpired,
-    limit,
-    owner,
-    startAfter
-  }: {
-    includeExpired?: boolean;
-    limit?: number;
-    owner: string;
-    startAfter?: string;
-  }) => Promise<OperatorsResponse>;
   numTokens: () => Promise<NumTokensResponse>;
   contractInfo: () => Promise<CollectionInfoAndExtensionResponseForNullableCollectionExtensionForRoyaltyInfo>;
   nftInfo: ({
@@ -112,6 +88,15 @@ export interface Terp721AccountReadOnlyInterface {
     startAfter?: string;
   }) => Promise<TokensResponse>;
   minter: () => Promise<OwnershipForAddr>;
+  operator: ({
+    includeExpired,
+    operator,
+    owner
+  }: {
+    includeExpired?: boolean;
+    operator: string;
+    owner: string;
+  }) => Promise<OperatorResponse>;
   ownership: () => Promise<OwnershipForString>;
 }
 export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterface {
@@ -124,17 +109,13 @@ export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterfac
     this.params = this.params.bind(this);
     this.account = this.account.bind(this);
     this.associatedAddress = this.associatedAddress.bind(this);
-    this.accountMarketplace = this.accountMarketplace.bind(this);
     this.reverseMapAddress = this.reverseMapAddress.bind(this);
     this.reverseMapAccount = this.reverseMapAccount.bind(this);
     this.imageNFT = this.imageNFT.bind(this);
     this.textRecords = this.textRecords.bind(this);
-    this.isTwitterVerified = this.isTwitterVerified.bind(this);
     this.verifier = this.verifier.bind(this);
     this.ownerOf = this.ownerOf.bind(this);
     this.approval = this.approval.bind(this);
-    this.approvals = this.approvals.bind(this);
-    this.allOperators = this.allOperators.bind(this);
     this.numTokens = this.numTokens.bind(this);
     this.contractInfo = this.contractInfo.bind(this);
     this.nftInfo = this.nftInfo.bind(this);
@@ -142,6 +123,7 @@ export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterfac
     this.tokens = this.tokens.bind(this);
     this.allTokens = this.allTokens.bind(this);
     this.minter = this.minter.bind(this);
+    this.operator = this.operator.bind(this);
     this.ownership = this.ownership.bind(this);
   }
 
@@ -170,11 +152,6 @@ export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterfac
       associated_address: {
         account
       }
-    });
-  };
-  accountMarketplace = async (): Promise<Addr> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      account_marketplace: {}
     });
   };
   reverseMapAddress = async ({
@@ -221,17 +198,6 @@ export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterfac
       }
     });
   };
-  isTwitterVerified = async ({
-    account
-  }: {
-    account: string;
-  }): Promise<Boolean> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      is_twitter_verified: {
-        account
-      }
-    });
-  };
   verifier = async (): Promise<NullableString> => {
     return this.client.queryContractSmart(this.contractAddress, {
       verifier: {}
@@ -265,40 +231,6 @@ export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterfac
         include_expired: includeExpired,
         spender,
         token_id: tokenId
-      }
-    });
-  };
-  approvals = async ({
-    includeExpired,
-    tokenId
-  }: {
-    includeExpired?: boolean;
-    tokenId: string;
-  }): Promise<ApprovalsResponse> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      approvals: {
-        include_expired: includeExpired,
-        token_id: tokenId
-      }
-    });
-  };
-  allOperators = async ({
-    includeExpired,
-    limit,
-    owner,
-    startAfter
-  }: {
-    includeExpired?: boolean;
-    limit?: number;
-    owner: string;
-    startAfter?: string;
-  }): Promise<OperatorsResponse> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      all_operators: {
-        include_expired: includeExpired,
-        limit,
-        owner,
-        start_after: startAfter
       }
     });
   };
@@ -371,6 +303,23 @@ export class Terp721AccountQueryClient implements Terp721AccountReadOnlyInterfac
   minter = async (): Promise<OwnershipForAddr> => {
     return this.client.queryContractSmart(this.contractAddress, {
       minter: {}
+    });
+  };
+  operator = async ({
+    includeExpired,
+    operator,
+    owner
+  }: {
+    includeExpired?: boolean;
+    operator: string;
+    owner: string;
+  }): Promise<OperatorResponse> => {
+    return this.client.queryContractSmart(this.contractAddress, {
+      operator: {
+        include_expired: includeExpired,
+        operator,
+        owner
+      }
     });
   };
   ownership = async (): Promise<OwnershipForString> => {

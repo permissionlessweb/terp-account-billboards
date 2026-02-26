@@ -8,7 +8,8 @@ use terp_account::{TextRecord, NFT};
 use cw721::msg::Cw721InstantiateMsg;
 use cw721::msg::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, Cw721ExecuteMsg, Cw721QueryMsg,
-    NftInfoResponse, NumTokensResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,
+    NftInfoResponse, NumTokensResponse, OperatorResponse, OperatorsResponse, OwnerOfResponse,
+    TokensResponse,
 };
 use cw721::{DefaultOptionalCollectionExtension, DefaultOptionalCollectionExtensionMsg};
 use cw_ownable::Ownership;
@@ -84,6 +85,7 @@ pub enum ExecuteMsg<T> {
         expires: Option<Expiration>,
     },
     /// Allows user to define if token is being associated to an Abstract Account.
+    #[cfg(feature = "abstract")]
     UpdateAbsAccSupport {
         token_id: String,
         r#abstract: Option<String>,
@@ -184,9 +186,6 @@ pub enum Terp721AccountsQueryMsg {
     /// If being used as ownership token for EOA, will return the EOA contract, otherwise returns the owner of the token
     #[returns(Addr)]
     AssociatedAddress { account: String },
-    /// Returns the marketplace contract address
-    #[returns(Addr)]
-    AccountMarketplace {},
     /// Query a non `terp1...` address to retrieve the `terp1...` associated with it
     #[returns(Addr)]
     ReverseMapAddress { address: String },
@@ -199,9 +198,6 @@ pub enum Terp721AccountsQueryMsg {
     /// Returns the text records for a account
     #[returns(Vec<TextRecord>)]
     TextRecords { account: String },
-    /// Returns if Twitter is verified for a account
-    #[returns(bool)]
-    IsTwitterVerified { account: String },
     /// Returns the verification oracle address
     #[returns(Option<String>)]
     Verifier {},
@@ -216,18 +212,6 @@ pub enum Terp721AccountsQueryMsg {
         token_id: String,
         spender: String,
         include_expired: Option<bool>,
-    },
-    #[returns(ApprovalsResponse)]
-    Approvals {
-        token_id: String,
-        include_expired: Option<bool>,
-    },
-    #[returns(OperatorsResponse)]
-    AllOperators {
-        owner: String,
-        include_expired: Option<bool>,
-        start_after: Option<String>,
-        limit: Option<u32>,
     },
     #[returns(NumTokensResponse)]
     NumTokens {},
@@ -253,6 +237,12 @@ pub enum Terp721AccountsQueryMsg {
     },
     #[returns(Ownership<Addr>)]
     Minter {},
+    #[returns(OperatorResponse)]
+    Operator {
+        owner: String,
+        operator: String,
+        include_expired: Option<bool>,
+    },
     // #[returns(CollectionInfoResponse)]
     // CollectionInfo {},
 }
@@ -280,26 +270,10 @@ impl From<Terp721AccountsQueryMsg>
                 spender,
                 include_expired,
             },
-            Terp721AccountsQueryMsg::Approvals {
-                token_id,
-                include_expired,
-            } => Cw721QueryMsg::Approvals {
-                token_id,
-                include_expired,
-            },
-            Terp721AccountsQueryMsg::AllOperators {
-                owner,
-                include_expired,
-                start_after,
-                limit,
-            } => Cw721QueryMsg::AllOperators {
-                owner,
-                include_expired,
-                start_after,
-                limit,
-            },
             Terp721AccountsQueryMsg::NumTokens {} => Cw721QueryMsg::NumTokens {},
-            Terp721AccountsQueryMsg::ContractInfo {} => Cw721QueryMsg::ContractInfo {},
+            Terp721AccountsQueryMsg::ContractInfo {} => {
+                Cw721QueryMsg::GetCollectionInfoAndExtension {}
+            }
             Terp721AccountsQueryMsg::NftInfo { token_id } => Cw721QueryMsg::NftInfo { token_id },
             Terp721AccountsQueryMsg::AllNftInfo {
                 token_id,
@@ -320,8 +294,16 @@ impl From<Terp721AccountsQueryMsg>
             Terp721AccountsQueryMsg::AllTokens { start_after, limit } => {
                 Cw721QueryMsg::AllTokens { start_after, limit }
             }
-            Terp721AccountsQueryMsg::Minter {} => Cw721QueryMsg::Minter {},
-            Terp721AccountsQueryMsg::Ownership {} => Cw721QueryMsg::Minter {},
+            Terp721AccountsQueryMsg::Minter {} => Cw721QueryMsg::GetMinterOwnership {},
+            Terp721AccountsQueryMsg::Operator {
+                owner,
+                operator,
+                include_expired,
+            } => Cw721QueryMsg::Operator {
+                owner,
+                operator,
+                include_expired,
+            },
             _ => unreachable!("cannot convert {:?} to Cw721QueryMsg", msg),
         }
     }

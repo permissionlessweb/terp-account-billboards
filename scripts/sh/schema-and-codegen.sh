@@ -32,7 +32,7 @@ move_schema() {
 for contract in terp721-account terp721-account-manifold; do
     echo "=== contracts/$contract ==="
     (
-        cargo schema -p $contract
+        cargo schema -p $contract --all-features
         move_schema "contracts/$contract/schema/$contract.json"
     )
 done

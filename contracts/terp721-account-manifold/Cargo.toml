@@ -10,8 +10,10 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [features]
+default = []
 # use library feature to disable all instantiate/execute/query exports
 library = []
+interface = ["cw-orch"]
 
 [dependencies]
 # ─── Local & Workspace Crates ────────────────────────────────────────
@@ -32,7 +34,7 @@ cw721                     = { workspace = true }
 thiserror               = { workspace = true }
 
 # ─── Orchestrator (CW-Orch) ──────────────────────────────────────────
-cw-orch                 = { workspace = true }
+cw-orch                 = { workspace = true, optional = true }
 
 # ─── Custom Controllers ──────────────────────────────────────────────
 cw-controllers          = { workspace = true }

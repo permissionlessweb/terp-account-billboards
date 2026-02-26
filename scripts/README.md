@@ -14,7 +14,7 @@ This library contains both Rust & Bash scripts for the BS-NFT repository.
 
 | Suite Name | Description |
 |----------|----------|
-| [`BtsgAccountSuite`](./src/deploy/bundles/account.rs#12)| Account Collection, Marketplace, and Minter. |
+| [`TerpAccountSuite`](./src/deploy/bundles/account.rs#12)| Account Collection, Marketplace, and Minter. |
 
 ## Cw-Orchestrator Commands
 
